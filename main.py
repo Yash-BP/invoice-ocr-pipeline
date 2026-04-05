@@ -1,24 +1,28 @@
 ﻿# ========================
-# main.py - One-command pipeline
+# main.py - Run entire pipeline with ONE command
 # ========================
 
 import os
 
-print("="*60)
+print("="*70)
 print("🚀 SME Invoice OCR Automation Pipeline")
-print("="*60)
+print("   Full ETL Pipeline Started...")
+print("="*70)
 
-print("\n📌 Step 1: Generating 20 fake invoices...")
+print("\n1️⃣ Generating 20 realistic Indian invoices...")
 os.system("python scripts/generate_invoices.py")
 
-print("\n📌 Step 2: Extracting data using OCR + Regex...")
+print("\n2️⃣ Extracting data using OCR + Regex...")
 os.system("python scripts/extract_ocr_data.py")
 
-print("\n📌 Step 3: Loading data into SQLite database...")
+print("\n3️⃣ Loading data into SQLite database...")
 os.system("python scripts/load_to_database.py")
 
-print("\n📌 Step 4: Generating financial summary...")
+print("\n4️⃣ Generating financial summary report...")
 os.system("python scripts/analyze_spending.py")
 
-print("\n✅ Full pipeline completed successfully!")
-print("📁 Check: data/extracted_invoices.csv and data/finance_system.db")
+print("\n✅ ✅ ✅ FULL PIPELINE COMPLETED SUCCESSFULLY!")
+print("📁 Output files ready:")
+print("   → data/extracted_invoices.csv")
+print("   → data/finance_system.db")
+print("   → Run: python main.py  (anytime)")
