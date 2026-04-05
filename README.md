@@ -1,7 +1,3 @@
-Here is the finalized, high-impact **README.md** content. You can copy the block below and paste it directly into your `README.md` file in VS Code. [cite: 2026-03-01]
-
------
-
 # 📑 SME Invoice OCR Automation Pipeline
 
 > **End-to-end Python ETL pipeline that eliminates manual data entry by extracting financial data from raw PDF invoices and loading it into a validated SQL database.**
@@ -96,7 +92,7 @@ streamlit run dashboard.py
 
 -----
 
-## 🌟 Why This Project Stands Out
+
 
   * **Handles Unstructured Data:** 80% of business data lives in PDFs. This pipeline proves the ability to clean and structure "messy" data. [cite: 2026-03-01]
   * **Production-Ready Logic:** Features idempotency (no duplicate entries) and error handling for corrupt files. [cite: 2026-03-01]
