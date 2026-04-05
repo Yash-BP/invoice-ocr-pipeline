@@ -1,0 +1,17 @@
+﻿# Virtual Environment
+venv/
+__pycache__/
+
+# Security & Config
+.env
+
+# Databases & Raw Data
+data/finance_system.db
+raw_invoices/
+*.pdf
+
+# PDFMiner leftover scripts (never commit these)
+pdf2txt.py
+dumppdf.py
+*.exe
+Activate.ps1
