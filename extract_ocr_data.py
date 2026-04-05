@@ -1,4 +1,4 @@
-﻿"""
+"""
 extract_ocr_data.py  —  Step 2 of the invoice-ocr-pipeline
 ===========================================================
 Reads each PDF in raw_invoices/, extracts key financial fields using
