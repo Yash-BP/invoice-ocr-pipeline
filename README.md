@@ -51,29 +51,27 @@ invoice-ocr-pipeline/
 -----
 
 ## 📊 Analytics Dashboard
+![Executive Summary and Charts](dashboard_charts.png)
 
-**Executive Summary & Spend Trends:**
-
-**Structured SQL Records (Validated):**
+## 𝌄 Structured Database Records
+![Validated SQL Records](database_rows.png)
 
 -----
 
 ## 🛠️ Tech Stack
-
-  * **Language:** Python 3.13 [cite: 2026-03-01]
-  * **OCR & Extraction:** `pdfplumber`, `re` (Regex) [cite: 2026-03-01]
-  * **Data Science:** `pandas`, `numpy` [cite: 2026-03-01]
-  * **Database:** `SQLite3` (Relational) [cite: 2026-03-01]
-  * **Visualization:** `Streamlit`, `Plotly Express` [cite: 2026-03-01]
-  * **Generation:** `ReportLab`, `Faker` [cite: 2026-03-01]
+* **Language:** Python 3.13 
+* **OCR & Extraction:** `pdfplumber`, `re` (Regex) 
+* **Data Science:** `pandas`, `numpy` 
+* **Database:** `SQLite3` (Relational) 
+* **Visualization:** `Streamlit`, `Plotly Express` 
+* **Generation:** `ReportLab`, `Faker` 
 
 -----
 
 ## ⚡ Quick Start
-
 ```bash
 # 1. Clone the repository
-git clone https://github.com/Yash-BP/invoice-ocr-pipeline.git
+git clone [https://github.com/Yash-BP/invoice-ocr-pipeline.git](https://github.com/Yash-BP/invoice-ocr-pipeline.git)
 cd invoice-ocr-pipeline
 
 # 2. Set up virtual environment
@@ -88,7 +86,6 @@ python run_pipeline.py
 
 # 5. View the dashboard
 streamlit run dashboard.py
-```
 
 -----
 
