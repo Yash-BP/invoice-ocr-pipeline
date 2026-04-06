@@ -1,49 +1,37 @@
-﻿# ── Python ──────────────────────────────────────────────────────────────────
+﻿# Python
 __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
 .Python
-*.egg
 *.egg-info/
 dist/
 build/
 .eggs/
 
-# ── Virtual environments ─────────────────────────────────────────────────────
+# Virtual environments
 venv/
 .venv/
 env/
-ENV/
 
-# ── Environment & secrets ────────────────────────────────────────────────────
+# Environment / secrets
 .env
-.env.*
-!.env.example          # keep the example template in git
 
-# ── Database files (use schema.sql instead) ──────────────────────────────────
-*.db
-*.sqlite
-*.sqlite3
-
-# ── Pipeline outputs (generated — not source code) ──────────────────────────
+# Pipeline data (generated at runtime — do not commit)
 raw_invoices/
-data/extracted_invoices.csv
-data/failed_invoices.csv
-data/pipeline.log
+data/*.db
+data/*.csv
+logs/
 
-# Keep the data/ directory itself (for schema.sql and README)
-!data/.gitkeep
+# The binary DB should never be in version control.
+# Commit schema.sql instead — it recreates the schema on any machine.
+*.db
 
-# ── OS & editor noise ────────────────────────────────────────────────────────
+# OS
 .DS_Store
 Thumbs.db
-.idea/
-.vscode/
-*.swp
-*.swo
 
-# ── Testing & coverage ───────────────────────────────────────────────────────
-.pytest_cache/
-.coverage
-htmlcov/
+# IDE
+.vscode/
+.idea/
+*.swp
