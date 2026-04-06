@@ -1,18 +1,18 @@
 """
 extract_ocr_data.py  —  Step 2 of the invoice-ocr-pipeline
 ===========================================================
-Reads each PDF in raw_invoices/, extracts key financial fields using
-pdfplumber + regex, and writes a clean CSV to data/extracted_invoices.csv.
+Reads each PDF in raw_invoices/, extracts financial fields via pdfplumber
++ regex, validates totals, and writes:
+  • data/extracted_invoices.csv  — all records (including flagged anomalies)
+  • data/failed_invoices.csv     — PDFs that could not be parsed at all
 
-Phase 1 changes:
-  - Replaced all print() calls with logging.
-  - Each PDF is processed in an isolated try/except block.
-    A failed PDF is recorded in data/failed_invoices.csv (filename + reason)
-    rather than crashing the whole run.
-  - Regex matches are guarded: a missing field returns None instead of
-    raising AttributeError.
-  - Output directories are created automatically.
-  - Paths read from environment variables with sensible defaults.
+Phase 1: error handling, logging, failed_invoices.csv, env-var config.
+Phase 2:
+  - Data validation step: checks that grand_total ≈ subtotal + tax_amount
+    (within a Rs. 1.00 floating-point tolerance).
+  - Each record gains two new fields: validation_passed (bool) and
+    validation_note (human-readable anomaly detail or empty string).
+  - Validation summary logged at the end of extraction.
 """
 
 import csv
@@ -38,30 +38,25 @@ logging.basicConfig(
 logger = logging.getLogger("extract_ocr_data")
 
 # ---------------------------------------------------------------------------
-# Configuration  (overridable via .env)
+# Configuration
 # ---------------------------------------------------------------------------
-RAW_INVOICES_DIR  = Path(os.getenv("RAW_INVOICES_DIR",  "raw_invoices"))
-EXTRACTED_CSV     = Path(os.getenv("EXTRACTED_CSV",     "data/extracted_invoices.csv"))
-FAILED_CSV        = Path(os.getenv("FAILED_CSV",        "data/failed_invoices.csv"))
+RAW_INVOICES_DIR = Path(os.getenv("RAW_INVOICES_DIR", "raw_invoices"))
+EXTRACTED_CSV    = Path(os.getenv("EXTRACTED_CSV",    "data/extracted_invoices.csv"))
+FAILED_CSV       = Path(os.getenv("FAILED_CSV",       "data/failed_invoices.csv"))
+
+# Tolerance for floating-point comparison of extracted monetary values (INR).
+# Regex may strip paise, so we allow up to Rs. 1.00 discrepancy.
+VALIDATION_TOLERANCE = 1.00
 
 # ---------------------------------------------------------------------------
-# Regex patterns
+# Regex patterns (compiled once at module level for performance)
 # ---------------------------------------------------------------------------
-# All patterns use re.IGNORECASE and are anchored as tightly as possible
-# to reduce false positives on varied invoice layouts.
-
 PATTERNS = {
     "invoice_id": re.compile(
         r"Invoice\s+No[.:\s]+([A-Z0-9\-]+)", re.IGNORECASE
     ),
     "invoice_date": re.compile(
         r"Date[:\s]+(\d{1,2}[-/]\d{1,2}[-/]\d{2,4})", re.IGNORECASE
-    ),
-    "vendor_name": re.compile(
-        # First non-empty line of the document is typically the vendor.
-        # Extracted separately in _extract_vendor(); pattern kept for reference.
-        r"^(.+)$",
-        re.MULTILINE,
     ),
     "subtotal": re.compile(
         r"Subtotal[:\s]+Rs\.?\s*([\d,]+\.?\d*)", re.IGNORECASE
@@ -74,13 +69,12 @@ PATTERNS = {
     ),
 }
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
 def _safe_float(value: str | None) -> float | None:
-    """Convert a comma-formatted string like '1,23,456.78' to float, or None."""
+    """Convert a comma-formatted INR string to float, or return None."""
     if value is None:
         return None
     try:
@@ -89,11 +83,14 @@ def _safe_float(value: str | None) -> float | None:
         return None
 
 
+def _match(pattern: re.Pattern, text: str) -> str | None:
+    """Return the first capture group of a regex match, or None — never raises."""
+    m = pattern.search(text)
+    return m.group(1).strip() if m else None
+
+
 def _extract_vendor(text: str) -> str | None:
-    """
-    Return the first non-empty line of the extracted text, which in our
-    ReportLab-generated invoices is always the vendor company name.
-    """
+    """Return the first non-empty line of extracted text (vendor name)."""
     for line in text.splitlines():
         stripped = line.strip()
         if stripped:
@@ -101,10 +98,47 @@ def _extract_vendor(text: str) -> str | None:
     return None
 
 
-def _match(pattern: re.Pattern, text: str) -> str | None:
-    """Return group(1) of the first match, or None — never raises."""
-    m = pattern.search(text)
-    return m.group(1).strip() if m else None
+# ---------------------------------------------------------------------------
+# Validation
+# ---------------------------------------------------------------------------
+
+def validate_record(record: dict) -> tuple[bool, str]:
+    """
+    Check that grand_total ≈ subtotal + tax_amount within VALIDATION_TOLERANCE.
+
+    Returns:
+        (passed: bool, note: str)
+        note is empty when passed=True; contains the discrepancy detail otherwise.
+    """
+    subtotal    = record.get("subtotal")
+    tax_amount  = record.get("tax_amount")
+    grand_total = record.get("grand_total")
+
+    # If any field is missing we can't validate — flag as a warning, not a fail.
+    if subtotal is None or tax_amount is None or grand_total is None:
+        missing = [
+            f for f, v in [("subtotal", subtotal),
+                            ("tax_amount", tax_amount),
+                            ("grand_total", grand_total)]
+            if v is None
+        ]
+        note = f"Validation skipped — missing fields: {', '.join(missing)}"
+        logger.warning("  [WARN] %s — %s", record.get("source_file", "?"), note)
+        # Skipped validation is treated as passed=True to avoid false positives.
+        return True, note
+
+    expected = round(subtotal + tax_amount, 2)
+    diff     = abs(grand_total - expected)
+
+    if diff <= VALIDATION_TOLERANCE:
+        return True, ""
+
+    note = (
+        f"Total mismatch: grand_total={grand_total:.2f} but "
+        f"subtotal({subtotal:.2f}) + tax({tax_amount:.2f}) = {expected:.2f} "
+        f"(diff={diff:.2f})"
+    )
+    return False, note
 
 
 # ---------------------------------------------------------------------------
@@ -113,15 +147,16 @@ def _match(pattern: re.Pattern, text: str) -> str | None:
 
 def extract_from_pdf(pdf_path: Path) -> dict:
     """
-    Open a single PDF, extract all text, and run regex patterns against it.
+    Open one PDF, extract all text, run regex patterns, and validate totals.
 
     Returns a dict with keys:
         invoice_id, invoice_date, vendor_name,
-        subtotal, tax_amount, grand_total, source_file
+        subtotal, tax_amount, grand_total,
+        validation_passed, validation_note, source_file
 
     Raises:
-        ValueError  — if the PDF contains no extractable text.
-        Any pdfplumber / IO exception propagates to the caller.
+        ValueError  — PDF contains no extractable text.
+        Any pdfplumber / IO exception propagates to caller.
     """
     with pdfplumber.open(pdf_path) as pdf:
         pages_text = [page.extract_text() or "" for page in pdf.pages]
@@ -140,6 +175,16 @@ def extract_from_pdf(pdf_path: Path) -> dict:
         "source_file":  pdf_path.name,
     }
 
+    # ── Phase 2: Validate totals ───────────────────────────────────────────
+    passed, note = validate_record(record)
+    record["validation_passed"] = int(passed)   # SQLite stores as INTEGER
+    record["validation_note"]   = note
+
+    if not passed:
+        logger.warning(
+            "  [ANOMALY] %s — %s", pdf_path.name, note
+        )
+
     return record
 
 
@@ -151,12 +196,12 @@ def main() -> list[dict]:
     """
     Process all PDFs in RAW_INVOICES_DIR.
     Writes extracted_invoices.csv and failed_invoices.csv.
-    Returns the list of successfully extracted records.
+    Returns the list of successfully extracted record dicts.
     """
     if not RAW_INVOICES_DIR.exists():
         logger.error(
-            "Raw invoices directory not found: %s  "
-            "(Run generate_invoices.py first.)",
+            "Raw invoices directory not found: '%s'. "
+            "Run generate_invoices.py first.",
             RAW_INVOICES_DIR,
         )
         return []
@@ -166,10 +211,9 @@ def main() -> list[dict]:
         logger.warning("No PDF files found in %s.", RAW_INVOICES_DIR)
         return []
 
-    logger.info("Found %d PDF(s) in %s. Starting extraction...",
+    logger.info("Found %d PDF(s) in %s — starting extraction...",
                 len(pdf_files), RAW_INVOICES_DIR)
 
-    # Ensure output directories exist
     EXTRACTED_CSV.parent.mkdir(parents=True, exist_ok=True)
     FAILED_CSV.parent.mkdir(parents=True, exist_ok=True)
 
@@ -180,39 +224,55 @@ def main() -> list[dict]:
         try:
             record = extract_from_pdf(pdf_path)
             extracted_records.append(record)
-            logger.info("  [OK]   %s → invoice_id=%s  total=%s",
-                        pdf_path.name,
-                        record.get("invoice_id", "?"),
-                        record.get("grand_total", "?"))
-
-        except Exception as exc:                           # noqa: BLE001
+            status = "OK " if record["validation_passed"] else "WARN"
+            logger.info(
+                "  [%s] %s → invoice_id=%-12s  total=%s",
+                status,
+                pdf_path.name,
+                record.get("invoice_id") or "?",
+                f"Rs. {record['grand_total']:,.2f}"
+                if record.get("grand_total") is not None else "?",
+            )
+        except Exception as exc:               # noqa: BLE001
             reason = f"{type(exc).__name__}: {exc}"
             logger.error("  [FAIL] %s — %s", pdf_path.name, reason)
             failed_records.append({"filename": pdf_path.name, "reason": reason})
 
-    # ---- Write extracted CSV ----
+    # ── Write CSVs ────────────────────────────────────────────────────────
     if extracted_records:
         df = pd.DataFrame(extracted_records)
         df.to_csv(EXTRACTED_CSV, index=False)
+        logger.info("Extracted CSV written → %s  (%d rows)",
+                    EXTRACTED_CSV, len(df))
+
+        # ── Phase 2: Validation summary ───────────────────────────────────
+        n_passed  = df["validation_passed"].sum()
+        n_flagged = len(df) - n_passed
         logger.info(
-            "Extraction complete — %d succeeded, %d failed.",
-            len(extracted_records), len(failed_records),
+            "Validation summary — passed: %d | flagged: %d",
+            n_passed, n_flagged,
         )
-        logger.info("Extracted CSV written to: %s", EXTRACTED_CSV)
+        if n_flagged:
+            flagged_ids = df.loc[
+                df["validation_passed"] == 0, "invoice_id"
+            ].tolist()
+            logger.warning(
+                "Flagged invoice IDs (review recommended): %s",
+                ", ".join(str(i) for i in flagged_ids),
+            )
     else:
         logger.warning("No records were successfully extracted.")
 
-    # ---- Write failed CSV ----
     if failed_records:
-        with open(FAILED_CSV, "w", newline="") as f:
+        with open(FAILED_CSV, "w", newline="", encoding="utf-8") as f:
             writer = csv.DictWriter(f, fieldnames=["filename", "reason"])
             writer.writeheader()
             writer.writerows(failed_records)
-        logger.warning(
-            "%d invoice(s) failed — see %s for details.",
-            len(failed_records), FAILED_CSV,
-        )
+        logger.warning("%d PDF(s) failed — details in %s",
+                       len(failed_records), FAILED_CSV)
 
+    logger.info("Extraction complete — %d extracted, %d failed.",
+                len(extracted_records), len(failed_records))
     return extracted_records
 
 
