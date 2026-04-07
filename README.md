@@ -1,8 +1,3 @@
-**✅ Here is your FINAL corrected and polished `README.md`**
-
-Copy the entire code below and **replace** the full content of your `README.md` file with it.
-
-```markdown
 # 🧾 Invoice OCR & Analytics Pipeline
 
 > End-to-end Python ETL pipeline that eliminates manual invoice data entry for Indian SMEs —  
