@@ -1,317 +1,188 @@
 """
 load_to_database.py  —  Step 3 of the invoice-ocr-pipeline
 ===========================================================
-Reads data/extracted_invoices.csv (written by extract_ocr_data.py) and
-idempotently loads every row into the processed_invoices SQLite table.
+Loads data/extracted_invoices.csv into SQLite.
 
-Phase 3 improvements over the previous version:
-  • Correct table name: processed_invoices (was wrongly targeting 'invoices')
-  • INSERT now includes validation_passed + validation_note columns
-  • schema.sql is auto-applied on startup so the DB is always initialised
-  • main() function restored — required by run_pipeline.py orchestrator
-  • All paths sourced from .env (DB_PATH, EXTRACTED_CSV, FAILED_CSV, SCHEMA_PATH)
-  • Per-row WAL-mode transactions; one bad row never blocks the rest
-  • LoadResult dataclass returned from load_invoices() for programmatic callers
-  • Graceful KeyError if DB_PATH missing from env (clear error, not a traceback)
+Key behaviours:
+  • Applies schema.sql on startup (idempotent)
+  • INSERT OR IGNORE — re-running never creates duplicates
+  • Handles all new columns: confidence, CGST/SGST/IGST, extraction_method
+  • Prints a rich post-load observability summary
 """
 
-from __future__ import annotations
-
-import csv
 import logging
 import os
 import sqlite3
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Optional
 
 import pandas as pd
 from dotenv import load_dotenv
 
 load_dotenv()
 
-logger = logging.getLogger(__name__)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s  %(levelname)-8s  %(name)s — %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+logger = logging.getLogger("load_to_database")
 
-# ---------------------------------------------------------------------------
-# Configuration — all values from .env, matching .env.example exactly
-# ---------------------------------------------------------------------------
+EXTRACTED_CSV = Path(os.getenv("EXTRACTED_CSV", "data/extracted_invoices.csv"))
+DB_PATH       = Path(os.getenv("DB_PATH",       "data/finance_system.db"))
+SCHEMA_PATH   = Path(os.getenv("SCHEMA_PATH",   "schema.sql"))
 
-def _require_env(key: str) -> Path:
-    """Raise a clear error if a required env variable is missing."""
-    val = os.getenv(key)
-    if not val:
-        raise EnvironmentError(
-            f"Required environment variable '{key}' is not set. "
-            f"Copy .env.example → .env and fill in the value."
-        )
-    return Path(val)
-
-
-DB_PATH        = _require_env("DB_PATH")           # data/finance_system.db
-EXTRACTED_CSV  = _require_env("EXTRACTED_CSV")     # data/extracted_invoices.csv
-FAILED_CSV     = _require_env("FAILED_CSV")        # data/failed_invoices.csv
-SCHEMA_PATH    = Path(os.getenv("SCHEMA_PATH", "schema.sql"))
-
-
-# ---------------------------------------------------------------------------
-# Result type — returned to run_pipeline.py orchestrator
-# ---------------------------------------------------------------------------
-
-@dataclass
-class LoadResult:
-    loaded:  int = 0
-    skipped: int = 0   # duplicate invoice_id — INSERT OR IGNORE silently skips
-    failed:  int = 0
-    errors:  list[str] = field(default_factory=list)
-
-    @property
-    def success(self) -> bool:
-        return self.failed == 0
+# All columns in the INSERT, in order. Must match schema.sql exactly.
+_INSERT_COLUMNS = [
+    "invoice_id", "invoice_id_confidence",
+    "invoice_date", "invoice_date_confidence",
+    "vendor_name", "vendor_name_confidence",
+    "subtotal", "subtotal_confidence",
+    "tax_amount", "tax_amount_confidence",
+    "cgst", "sgst", "igst",
+    "grand_total", "grand_total_confidence",
+    "extraction_method", "overall_confidence",
+    "validation_passed", "validation_note",
+    "source_file",
+]
 
 
-# ---------------------------------------------------------------------------
-# Schema initialisation
-# ---------------------------------------------------------------------------
-
-def _ensure_schema(conn: sqlite3.Connection) -> None:
-    """
-    Apply schema.sql if it exists.
-    Uses CREATE TABLE IF NOT EXISTS so this is safe to call on every run —
-    it will never overwrite existing data.
-    """
+def _init_schema(conn: sqlite3.Connection) -> None:
     if not SCHEMA_PATH.exists():
-        logger.warning(
-            "schema.sql not found at '%s' — skipping schema init. "
-            "If the table doesn't exist, inserts will fail.",
-            SCHEMA_PATH,
-        )
-        return
+        raise FileNotFoundError(f"schema.sql not found at '{SCHEMA_PATH}'.")
+    conn.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
+    logger.info("Schema applied from %s.", SCHEMA_PATH)
 
-    sql = SCHEMA_PATH.read_text(encoding="utf-8")
 
-    # Strip the DROP TABLE lines so re-runs never wipe existing data
-    safe_sql = "\n".join(
-        line for line in sql.splitlines()
-        if not line.strip().upper().startswith("DROP TABLE")
+def _load_csv(csv_path: Path) -> pd.DataFrame:
+    if not csv_path.exists():
+        raise FileNotFoundError(f"Extracted CSV not found: '{csv_path}'.")
+    df = pd.read_csv(csv_path)
+
+    # Back-fill columns that may be absent in older CSV versions
+    defaults = {
+        "invoice_id_confidence":   "MISSING",
+        "invoice_date_confidence": "MISSING",
+        "vendor_name_confidence":  "MISSING",
+        "subtotal_confidence":     "MISSING",
+        "tax_amount_confidence":   "MISSING",
+        "grand_total_confidence":  "MISSING",
+        "extraction_method":       "text_layer",
+        "overall_confidence":      "MISSING",
+        "cgst":                    None,
+        "sgst":                    None,
+        "igst":                    None,
+        "validation_passed":       1,
+        "validation_note":         "",
+    }
+    for col, default in defaults.items():
+        if col not in df.columns:
+            df[col] = default
+
+    return df
+
+
+def _row_value(row: pd.Series, col: str):
+    """Return None for NaN/NaT, otherwise the raw value."""
+    val = row.get(col)
+    if pd.isna(val):
+        return None
+    return val
+
+
+def load_records(conn: sqlite3.Connection, df: pd.DataFrame) -> tuple[int, int]:
+    cursor   = conn.cursor()
+    inserted = skipped = 0
+
+    placeholders = ", ".join("?" * len(_INSERT_COLUMNS))
+    sql = (
+        f"INSERT OR IGNORE INTO processed_invoices "
+        f"({', '.join(_INSERT_COLUMNS)}) VALUES ({placeholders})"
     )
-    conn.executescript(safe_sql)
-    logger.debug("Schema applied from %s", SCHEMA_PATH)
+
+    for _, row in df.iterrows():
+        values = tuple(_row_value(row, col) for col in _INSERT_COLUMNS)
+        try:
+            cursor.execute(sql, values)
+            if cursor.rowcount == 1:
+                inserted += 1
+            else:
+                skipped += 1
+                logger.debug("  [SKIP] %s — already in DB", row.get("invoice_id"))
+        except sqlite3.Error as exc:
+            logger.error("  [FAIL] %s — %s", row.get("invoice_id"), exc)
+
+    conn.commit()
+    return inserted, skipped
 
 
-# ---------------------------------------------------------------------------
-# CSV failure sink
-# ---------------------------------------------------------------------------
-
-def _write_failed(invoice: dict[str, Any], reason: str) -> None:
-    """Append one failure row to FAILED_CSV (creates the file + header if needed)."""
-    FAILED_CSV.parent.mkdir(parents=True, exist_ok=True)
-    needs_header = not FAILED_CSV.exists()
-
-    with FAILED_CSV.open("a", newline="", encoding="utf-8") as fh:
-        writer = csv.DictWriter(
-            fh,
-            fieldnames=["timestamp", "invoice_id", "vendor_name", "reason"],
-            extrasaction="ignore",
-        )
-        if needs_header:
-            writer.writeheader()
-
-        writer.writerow({
-            "timestamp":   datetime.now(timezone.utc).isoformat(),
-            "invoice_id":  invoice.get("invoice_id", "UNKNOWN"),
-            "vendor_name": invoice.get("vendor_name", ""),
-            "reason":      reason,
-        })
-
-
-# ---------------------------------------------------------------------------
-# Core loader
-# ---------------------------------------------------------------------------
-
-# SQL matches processed_invoices schema exactly (see schema.sql)
-_INSERT_SQL = """
-    INSERT OR IGNORE INTO processed_invoices (
-        invoice_id,
-        invoice_date,
-        vendor_name,
-        subtotal,
-        tax_amount,
-        grand_total,
-        validation_passed,
-        validation_note,
-        source_file,
-        loaded_at
-    ) VALUES (
-        :invoice_id,
-        :invoice_date,
-        :vendor_name,
-        :subtotal,
-        :tax_amount,
-        :grand_total,
-        :validation_passed,
-        :validation_note,
-        :source_file,
-        :loaded_at
-    )
-"""
-
-
-def load_invoices(invoices: list[dict[str, Any]]) -> LoadResult:
-    """
-    Idempotently insert a list of invoice dicts into processed_invoices.
-
-    Records that already exist (matched by UNIQUE invoice_id) are silently
-    skipped and counted as 'skipped', not 'failed'.
-
-    Records missing invoice_id are written to FAILED_CSV and skipped.
-
-    Args:
-        invoices: List of dicts as returned by extract_ocr_data.main().
-                  Each dict must have the keys produced by extract_from_pdf().
-
-    Returns:
-        LoadResult with loaded / skipped / failed counts.
-    """
-    result = LoadResult()
-
-    if not invoices:
-        logger.info("load_invoices: received empty list — nothing to do.")
-        return result
-
+def main() -> None:
+    logger.info("Database load: %s → %s", EXTRACTED_CSV, DB_PATH)
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
 
     try:
-        conn = sqlite3.connect(DB_PATH)
-        conn.execute("PRAGMA journal_mode=WAL;")   # safe for concurrent readers
-        conn.execute("PRAGMA foreign_keys=ON;")
-    except sqlite3.Error as exc:
-        logger.critical("Cannot open database '%s': %s", DB_PATH, exc)
-        raise
+        df = _load_csv(EXTRACTED_CSV)
+    except (FileNotFoundError, ValueError) as exc:
+        logger.error("%s", exc)
+        return
 
-    _ensure_schema(conn)
-
-    for invoice in invoices:
-        inv_id = invoice.get("invoice_id")
-
-        # Guard: invoice_id is the primary business key — reject if absent
-        if not inv_id:
-            reason = "Missing invoice_id — cannot insert without a unique key"
-            logger.warning("[SKIP] %s | source=%s",
-                           reason, invoice.get("source_file", "?"))
-            _write_failed(invoice, reason)
-            result.failed += 1
-            result.errors.append(f"UNKNOWN: {reason}")
-            continue
-
-        row = {
-            "invoice_id":        inv_id,
-            "invoice_date":      invoice.get("invoice_date"),
-            "vendor_name":       invoice.get("vendor_name"),
-            "subtotal":          invoice.get("subtotal"),
-            "tax_amount":        invoice.get("tax_amount"),
-            "grand_total":       invoice.get("grand_total"),
-            # validation_passed is set by extract_ocr_data.py (int 0/1)
-            # Default to 1 so rows loaded outside the pipeline aren't penalised
-            "validation_passed": int(invoice.get("validation_passed", 1)),
-            "validation_note":   invoice.get("validation_note", ""),
-            "source_file":       invoice.get("source_file"),
-            "loaded_at":         datetime.now(timezone.utc).isoformat(),
-        }
-
-        try:
-            with conn:   # per-row transaction: commit on success, rollback on error
-                cursor = conn.execute(_INSERT_SQL, row)
-
-            if cursor.rowcount == 1:
-                val_flag = "✓" if row["validation_passed"] else "⚠"
-                logger.info(
-                    "[LOAD %s] %-14s | vendor=%-25s | total=Rs.%,.2f",
-                    val_flag,
-                    inv_id,
-                    (row["vendor_name"] or "")[:25],
-                    row["grand_total"] or 0.0,
-                )
-                result.loaded += 1
-            else:
-                logger.debug("[SKIP] Duplicate invoice_id=%s — already in DB", inv_id)
-                result.skipped += 1
-
-        except sqlite3.Error as exc:
-            reason = f"DB error: {exc}"
-            logger.error("[FAIL] invoice_id=%s — %s", inv_id, exc)
-            _write_failed(invoice, reason)
-            result.failed += 1
-            result.errors.append(f"{inv_id}: {reason}")
-
-    conn.close()
-
-    logger.info(
-        "Load complete ── loaded: %d  |  skipped (duplicates): %d  |  failed: %d",
-        result.loaded, result.skipped, result.failed,
-    )
-    return result
-
-
-# ---------------------------------------------------------------------------
-# main() — called by run_pipeline.py as load_step.main()
-# ---------------------------------------------------------------------------
-
-def main() -> Optional[LoadResult]:
-    """
-    Entry point for the orchestrator (run_pipeline.py Step 3).
-
-    Reads EXTRACTED_CSV produced by extract_ocr_data.main(), converts each
-    row to a dict, and calls load_invoices().
-
-    Returns:
-        LoadResult on success, None if the CSV is missing or unreadable.
-    """
-    if not EXTRACTED_CSV.exists():
-        logger.error(
-            "Extracted CSV not found: '%s'. "
-            "Run extract_ocr_data.py (Step 2) before this step.",
-            EXTRACTED_CSV,
-        )
-        return None
+    logger.info("Read %d row(s) from CSV.", len(df))
 
     try:
-        df = pd.read_csv(EXTRACTED_CSV)
-    except Exception as exc:   # noqa: BLE001
-        logger.error("Failed to read '%s': %s", EXTRACTED_CSV, exc)
-        return None
+        with sqlite3.connect(DB_PATH) as conn:
+            _init_schema(conn)
+            inserted, skipped = load_records(conn, df)
+    except (FileNotFoundError, sqlite3.Error) as exc:
+        logger.error("Database error: %s", exc)
+        return
 
-    if df.empty:
-        logger.warning("'%s' is empty — nothing to load.", EXTRACTED_CSV)
-        return LoadResult()
+    logger.info("Load complete — %d inserted, %d skipped.", inserted, skipped)
 
-    logger.info(
-        "Read %d row(s) from '%s' — beginning DB load...",
-        len(df), EXTRACTED_CSV,
-    )
+    # ── Observability summary ──────────────────────────────────────────────
+    try:
+        with sqlite3.connect(DB_PATH) as conn:
+            row = conn.execute("""
+                SELECT
+                    COUNT(*)                                          AS total,
+                    SUM(grand_total)                                  AS spend,
+                    AVG(grand_total)                                  AS avg_inv,
+                    SUM(CASE WHEN validation_passed=0  THEN 1 ELSE 0 END) AS flagged,
+                    SUM(CASE WHEN overall_confidence='HIGH'    THEN 1 ELSE 0 END) AS high,
+                    SUM(CASE WHEN overall_confidence='LOW'     THEN 1 ELSE 0 END) AS low,
+                    SUM(CASE WHEN overall_confidence='MISSING' THEN 1 ELSE 0 END) AS missing,
+                    SUM(CASE WHEN extraction_method='ocr'      THEN 1 ELSE 0 END) AS ocr
+                FROM processed_invoices
+            """).fetchone()
 
-    # Convert DataFrame rows to plain dicts; NaN → None for SQLite compatibility
-    invoices = [
-        {k: (None if pd.isna(v) else v) for k, v in row.items()}
-        for row in df.to_dict(orient="records")
-    ]
+            total, spend, avg, flagged, high, low, miss, ocr = row
+            logger.info("─" * 56)
+            logger.info("DB summary (all-time)")
+            logger.info("  Total invoices  : %d", total or 0)
+            logger.info("  Total spend     : Rs. %s",
+                        f"{spend:,.2f}" if spend else "0.00")
+            logger.info("  Avg invoice     : Rs. %s",
+                        f"{avg:,.2f}"   if avg   else "0.00")
+            logger.info("  Confidence HIGH : %d", high    or 0)
+            logger.info("  Confidence LOW  : %d", low     or 0)
+            logger.info("  Confidence MISS : %d", miss    or 0)
+            logger.info("  Via OCR         : %d", ocr     or 0)
+            logger.info("  Flagged (review): %d", flagged or 0)
+            logger.info("─" * 56)
 
-    return load_invoices(invoices)
+            if flagged:
+                logger.warning(
+                    "%d row(s) need review → "
+                    "SELECT * FROM processed_invoices WHERE validation_passed=0;",
+                    flagged,
+                )
+            if miss and miss > (total or 1) * 0.3:
+                logger.warning(
+                    "%.0f%% of records have MISSING confidence — "
+                    "check regex patterns against your invoice formats.",
+                    100 * miss / total,
+                )
+    except sqlite3.Error as exc:
+        logger.warning("Summary query failed: %s", exc)
 
-
-# ---------------------------------------------------------------------------
-# Standalone execution
-# ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    import sys
-
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s  %(levelname)-8s  %(name)s — %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-
-    result = main()
-    if result is None or not result.success:
-        sys.exit(1)
+    main()
