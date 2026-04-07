@@ -1,0 +1,333 @@
+2026-04-07 00:40:11  INFO      run_pipeline — ╔══════════════════════════════════════════════════════════════╗
+2026-04-07 00:40:11  INFO      run_pipeline — ║         invoice-ocr-pipeline  ·  starting run               ║
+2026-04-07 00:40:11  INFO      run_pipeline — ╚══════════════════════════════════════════════════════════════╝
+
+2026-04-07 00:40:11  INFO      run_pipeline — ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2026-04-07 00:40:11  INFO      run_pipeline —   STEP 1 / 3  —  Generate invoices (PDF)
+2026-04-07 00:40:11  INFO      run_pipeline — ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2026-04-07 00:40:11  INFO      generate_invoices — Starting invoice generation — target: 20 invoices → raw_invoices
+2026-04-07 00:40:11  INFO      generate_invoices —   [OK] Generated INV-00001.pdf
+2026-04-07 00:40:11  INFO      generate_invoices —   [OK] Generated INV-00002.pdf
+2026-04-07 00:40:11  INFO      generate_invoices —   [OK] Generated INV-00003.pdf
+2026-04-07 00:40:11  INFO      generate_invoices —   [OK] Generated INV-00004.pdf
+2026-04-07 00:40:11  INFO      generate_invoices —   [OK] Generated INV-00005.pdf
+2026-04-07 00:40:11  INFO      generate_invoices —   [OK] Generated INV-00006.pdf
+2026-04-07 00:40:11  INFO      generate_invoices —   [OK] Generated INV-00007.pdf
+2026-04-07 00:40:11  INFO      generate_invoices —   [OK] Generated INV-00008.pdf
+2026-04-07 00:40:11  INFO      generate_invoices —   [OK] Generated INV-00009.pdf
+2026-04-07 00:40:11  INFO      generate_invoices —   [OK] Generated INV-00010.pdf
+2026-04-07 00:40:11  INFO      generate_invoices —   [OK] Generated INV-00011.pdf
+2026-04-07 00:40:11  INFO      generate_invoices —   [OK] Generated INV-00012.pdf
+2026-04-07 00:40:11  INFO      generate_invoices —   [OK] Generated INV-00013.pdf
+2026-04-07 00:40:11  INFO      generate_invoices —   [OK] Generated INV-00014.pdf
+2026-04-07 00:40:11  INFO      generate_invoices —   [OK] Generated INV-00015.pdf
+2026-04-07 00:40:11  INFO      generate_invoices —   [OK] Generated INV-00016.pdf
+2026-04-07 00:40:11  INFO      generate_invoices —   [OK] Generated INV-00017.pdf
+2026-04-07 00:40:11  INFO      generate_invoices —   [OK] Generated INV-00018.pdf
+2026-04-07 00:40:11  INFO      generate_invoices —   [OK] Generated INV-00019.pdf
+2026-04-07 00:40:11  INFO      generate_invoices —   [OK] Generated INV-00020.pdf
+2026-04-07 00:40:11  INFO      generate_invoices — Generation complete — 20 succeeded, 0 failed.
+2026-04-07 00:40:11  INFO      run_pipeline —   ✓  Completed in 0.11s
+
+2026-04-07 00:40:11  INFO      run_pipeline — ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2026-04-07 00:40:11  INFO      run_pipeline —   STEP 2 / 3  —  Extract OCR data → CSV
+2026-04-07 00:40:11  INFO      run_pipeline — ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2026-04-07 00:40:11  INFO      extract_ocr_data — Found 20 PDF(s) in raw_invoices. Starting extraction...
+2026-04-07 00:40:11  INFO      extract_ocr_data —   [OK]   INV-00001.pdf → invoice_id=INV-00001  total=704738.62
+2026-04-07 00:40:11  INFO      extract_ocr_data —   [OK]   INV-00002.pdf → invoice_id=INV-00002  total=103719.57
+2026-04-07 00:40:11  INFO      extract_ocr_data —   [OK]   INV-00003.pdf → invoice_id=INV-00003  total=453635.41
+2026-04-07 00:40:11  INFO      extract_ocr_data —   [OK]   INV-00004.pdf → invoice_id=INV-00004  total=305378.02
+2026-04-07 00:40:11  INFO      extract_ocr_data —   [OK]   INV-00005.pdf → invoice_id=INV-00005  total=175610.4
+2026-04-07 00:40:11  INFO      extract_ocr_data —   [OK]   INV-00006.pdf → invoice_id=INV-00006  total=223859.48
+2026-04-07 00:40:11  INFO      extract_ocr_data —   [OK]   INV-00007.pdf → invoice_id=INV-00007  total=641184.59
+2026-04-07 00:40:11  INFO      extract_ocr_data —   [OK]   INV-00008.pdf → invoice_id=INV-00008  total=105102.06
+2026-04-07 00:40:11  INFO      extract_ocr_data —   [OK]   INV-00009.pdf → invoice_id=INV-00009  total=248378.45
+2026-04-07 00:40:11  INFO      extract_ocr_data —   [OK]   INV-00010.pdf → invoice_id=INV-00010  total=367022.76
+2026-04-07 00:40:11  INFO      extract_ocr_data —   [OK]   INV-00011.pdf → invoice_id=INV-00011  total=203921.02
+2026-04-07 00:40:11  INFO      extract_ocr_data —   [OK]   INV-00012.pdf → invoice_id=INV-00012  total=508549.01
+2026-04-07 00:40:11  INFO      extract_ocr_data —   [OK]   INV-00013.pdf → invoice_id=INV-00013  total=426803.97
+2026-04-07 00:40:11  INFO      extract_ocr_data —   [OK]   INV-00014.pdf → invoice_id=INV-00014  total=363939.0
+2026-04-07 00:40:11  INFO      extract_ocr_data —   [OK]   INV-00015.pdf → invoice_id=INV-00015  total=163765.42
+2026-04-07 00:40:11  INFO      extract_ocr_data —   [OK]   INV-00016.pdf → invoice_id=INV-00016  total=219768.31
+2026-04-07 00:40:11  INFO      extract_ocr_data —   [OK]   INV-00017.pdf → invoice_id=INV-00017  total=223232.99
+2026-04-07 00:40:11  INFO      extract_ocr_data —   [OK]   INV-00018.pdf → invoice_id=INV-00018  total=379619.12
+2026-04-07 00:40:11  INFO      extract_ocr_data —   [OK]   INV-00019.pdf → invoice_id=INV-00019  total=220023.22
+2026-04-07 00:40:11  INFO      extract_ocr_data —   [OK]   INV-00020.pdf → invoice_id=INV-00020  total=412755.01
+2026-04-07 00:40:11  INFO      extract_ocr_data — Extraction complete — 20 succeeded, 0 failed.
+2026-04-07 00:40:11  INFO      extract_ocr_data — Extracted CSV written to: data\extracted_invoices.csv
+2026-04-07 00:40:11  INFO      run_pipeline —   ✓  Completed in 0.68s
+
+2026-04-07 00:40:11  INFO      run_pipeline — ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2026-04-07 00:40:11  INFO      run_pipeline —   STEP 3 / 3  —  Load CSV → SQLite database
+2026-04-07 00:40:11  INFO      run_pipeline — ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2026-04-07 00:40:11  INFO      load_to_database — Starting database load — source: data\extracted_invoices.csv → data\finance_system.db
+2026-04-07 00:40:11  INFO      load_to_database — Loaded 20 record(s) from CSV.
+2026-04-07 00:40:11  INFO      load_to_database — Schema initialised from schema.sql.
+2026-04-07 00:40:11  INFO      load_to_database — Load complete — 20 inserted, 0 skipped/failed.
+2026-04-07 00:40:11  INFO      load_to_database — DB summary — rows: 20 | total expenditure: Rs. 6,451,006.43 | avg: Rs. 322,550.32
+2026-04-07 00:40:11  INFO      run_pipeline —   ✓  Completed in 0.12s
+
+2026-04-07 00:40:11  INFO      run_pipeline — 
+2026-04-07 00:40:11  INFO      run_pipeline — ╔══════════════════════════════════════════════════════════════╗
+2026-04-07 00:40:11  INFO      run_pipeline — ║                      PIPELINE SUMMARY                       ║
+2026-04-07 00:40:11  INFO      run_pipeline — ╠══════════════════════════════════════════════════════════════╣
+2026-04-07 00:40:11  INFO      run_pipeline — ║  ✓  Step 1 — Generate PDFs       OK      0.11s                               ║
+2026-04-07 00:40:11  INFO      run_pipeline — ║  ✓  Step 2 — Extract OCR data    OK      0.68s                               ║
+2026-04-07 00:40:11  INFO      run_pipeline — ║  ✓  Step 3 — Load to database    OK      0.12s                               ║
+2026-04-07 00:40:11  INFO      run_pipeline — ╠══════════════════════════════════════════════════════════════╣
+2026-04-07 00:40:11  INFO      run_pipeline — ║  Total runtime : 0.92s                                        ║
+2026-04-07 00:40:11  INFO      run_pipeline — ║  Overall       : SUCCESS ✓                                    ║
+2026-04-07 00:40:11  INFO      run_pipeline — ╚══════════════════════════════════════════════════════════════╝
+2026-04-07 00:40:11  INFO      run_pipeline — Run metadata written to pipeline_run_log.
+2026-04-07 02:46:36  INFO      run_pipeline — ╔══════════════════════════════════════════════════════════════╗
+2026-04-07 02:46:36  INFO      run_pipeline — ║         invoice-ocr-pipeline  ·  starting run               ║
+2026-04-07 02:46:36  INFO      run_pipeline — ╚══════════════════════════════════════════════════════════════╝
+
+2026-04-07 02:46:36  INFO      run_pipeline — ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2026-04-07 02:46:36  INFO      run_pipeline —   STEP 1 / 3  —  Generate invoices (PDF)
+2026-04-07 02:46:36  INFO      run_pipeline — ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2026-04-07 02:46:36  INFO      generate_invoices — Starting invoice generation — target: 20 invoices → raw_invoices
+2026-04-07 02:46:36  INFO      generate_invoices —   [OK] Generated INV-00001.pdf
+2026-04-07 02:46:36  INFO      generate_invoices —   [OK] Generated INV-00002.pdf
+2026-04-07 02:46:36  INFO      generate_invoices —   [OK] Generated INV-00003.pdf
+2026-04-07 02:46:36  INFO      generate_invoices —   [OK] Generated INV-00004.pdf
+2026-04-07 02:46:36  INFO      generate_invoices —   [OK] Generated INV-00005.pdf
+2026-04-07 02:46:36  INFO      generate_invoices —   [OK] Generated INV-00006.pdf
+2026-04-07 02:46:36  INFO      generate_invoices —   [OK] Generated INV-00007.pdf
+2026-04-07 02:46:36  INFO      generate_invoices —   [OK] Generated INV-00008.pdf
+2026-04-07 02:46:36  INFO      generate_invoices —   [OK] Generated INV-00009.pdf
+2026-04-07 02:46:36  INFO      generate_invoices —   [OK] Generated INV-00010.pdf
+2026-04-07 02:46:36  INFO      generate_invoices —   [OK] Generated INV-00011.pdf
+2026-04-07 02:46:36  INFO      generate_invoices —   [OK] Generated INV-00012.pdf
+2026-04-07 02:46:36  INFO      generate_invoices —   [OK] Generated INV-00013.pdf
+2026-04-07 02:46:36  INFO      generate_invoices —   [OK] Generated INV-00014.pdf
+2026-04-07 02:46:36  INFO      generate_invoices —   [OK] Generated INV-00015.pdf
+2026-04-07 02:46:36  INFO      generate_invoices —   [OK] Generated INV-00016.pdf
+2026-04-07 02:46:36  INFO      generate_invoices —   [OK] Generated INV-00017.pdf
+2026-04-07 02:46:36  INFO      generate_invoices —   [OK] Generated INV-00018.pdf
+2026-04-07 02:46:36  INFO      generate_invoices —   [OK] Generated INV-00019.pdf
+2026-04-07 02:46:36  INFO      generate_invoices —   [OK] Generated INV-00020.pdf
+2026-04-07 02:46:36  INFO      generate_invoices — Generation complete — 20 succeeded, 0 failed.
+2026-04-07 02:46:36  INFO      run_pipeline —   ✓  Completed in 0.10s
+
+2026-04-07 02:46:36  INFO      run_pipeline — ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2026-04-07 02:46:36  INFO      run_pipeline —   STEP 2 / 3  —  Extract OCR data → CSV
+2026-04-07 02:46:36  INFO      run_pipeline — ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2026-04-07 02:46:36  INFO      extract_ocr_data — Found 20 PDF(s) in raw_invoices. Starting extraction...
+2026-04-07 02:46:36  INFO      extract_ocr_data —   [OK]   INV-00001.pdf → invoice_id=INV-00001  total=403841.72
+2026-04-07 02:46:36  INFO      extract_ocr_data —   [OK]   INV-00002.pdf → invoice_id=INV-00002  total=396447.33
+2026-04-07 02:46:36  INFO      extract_ocr_data —   [OK]   INV-00003.pdf → invoice_id=INV-00003  total=228264.42
+2026-04-07 02:46:36  INFO      extract_ocr_data —   [OK]   INV-00004.pdf → invoice_id=INV-00004  total=415912.68
+2026-04-07 02:46:36  INFO      extract_ocr_data —   [OK]   INV-00005.pdf → invoice_id=INV-00005  total=431244.77
+2026-04-07 02:46:36  INFO      extract_ocr_data —   [OK]   INV-00006.pdf → invoice_id=INV-00006  total=71874.24
+2026-04-07 02:46:37  INFO      extract_ocr_data —   [OK]   INV-00007.pdf → invoice_id=INV-00007  total=640617.88
+2026-04-07 02:46:37  INFO      extract_ocr_data —   [OK]   INV-00008.pdf → invoice_id=INV-00008  total=67241.06
+2026-04-07 02:46:37  INFO      extract_ocr_data —   [OK]   INV-00009.pdf → invoice_id=INV-00009  total=321165.04
+2026-04-07 02:46:37  INFO      extract_ocr_data —   [OK]   INV-00010.pdf → invoice_id=INV-00010  total=357679.36
+2026-04-07 02:46:37  INFO      extract_ocr_data —   [OK]   INV-00011.pdf → invoice_id=INV-00011  total=473107.11
+2026-04-07 02:46:37  INFO      extract_ocr_data —   [OK]   INV-00012.pdf → invoice_id=INV-00012  total=270447.83
+2026-04-07 02:46:37  INFO      extract_ocr_data —   [OK]   INV-00013.pdf → invoice_id=INV-00013  total=59717.5
+2026-04-07 02:46:37  INFO      extract_ocr_data —   [OK]   INV-00014.pdf → invoice_id=INV-00014  total=98630.84
+2026-04-07 02:46:37  INFO      extract_ocr_data —   [OK]   INV-00015.pdf → invoice_id=INV-00015  total=1045008.76
+2026-04-07 02:46:37  INFO      extract_ocr_data —   [OK]   INV-00016.pdf → invoice_id=INV-00016  total=589658.41
+2026-04-07 02:46:37  INFO      extract_ocr_data —   [OK]   INV-00017.pdf → invoice_id=INV-00017  total=220251.64
+2026-04-07 02:46:37  INFO      extract_ocr_data —   [OK]   INV-00018.pdf → invoice_id=INV-00018  total=713778.57
+2026-04-07 02:46:37  INFO      extract_ocr_data —   [OK]   INV-00019.pdf → invoice_id=INV-00019  total=517312.46
+2026-04-07 02:46:37  INFO      extract_ocr_data —   [OK]   INV-00020.pdf → invoice_id=INV-00020  total=212110.92
+2026-04-07 02:46:37  INFO      extract_ocr_data — Extraction complete — 20 succeeded, 0 failed.
+2026-04-07 02:46:37  INFO      extract_ocr_data — Extracted CSV written to: data\extracted_invoices.csv
+2026-04-07 02:46:37  INFO      run_pipeline —   ✓  Completed in 0.59s
+
+2026-04-07 02:46:37  INFO      run_pipeline — ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2026-04-07 02:46:37  INFO      run_pipeline —   STEP 3 / 3  —  Load CSV → SQLite database
+2026-04-07 02:46:37  INFO      run_pipeline — ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2026-04-07 02:46:37  INFO      load_to_database — Starting database load — source: data\extracted_invoices.csv → data\finance_system.db
+2026-04-07 02:46:37  INFO      load_to_database — Loaded 20 record(s) from CSV.
+2026-04-07 02:46:37  INFO      load_to_database — Schema initialised from schema.sql.
+2026-04-07 02:46:37  INFO      load_to_database — Load complete — 20 inserted, 0 skipped/failed.
+2026-04-07 02:46:37  INFO      load_to_database — DB summary — rows: 20 | total expenditure: Rs. 7,534,312.54 | avg: Rs. 376,715.63
+2026-04-07 02:46:37  INFO      run_pipeline —   ✓  Completed in 0.05s
+
+2026-04-07 02:46:37  INFO      run_pipeline — 
+2026-04-07 02:46:37  INFO      run_pipeline — ╔══════════════════════════════════════════════════════════════╗
+2026-04-07 02:46:37  INFO      run_pipeline — ║                      PIPELINE SUMMARY                       ║
+2026-04-07 02:46:37  INFO      run_pipeline — ╠══════════════════════════════════════════════════════════════╣
+2026-04-07 02:46:37  INFO      run_pipeline — ║  ✓  Step 1 — Generate PDFs       OK      0.10s                               ║
+2026-04-07 02:46:37  INFO      run_pipeline — ║  ✓  Step 2 — Extract OCR data    OK      0.59s                               ║
+2026-04-07 02:46:37  INFO      run_pipeline — ║  ✓  Step 3 — Load to database    OK      0.05s                               ║
+2026-04-07 02:46:37  INFO      run_pipeline — ╠══════════════════════════════════════════════════════════════╣
+2026-04-07 02:46:37  INFO      run_pipeline — ║  Total runtime : 0.74s                                        ║
+2026-04-07 02:46:37  INFO      run_pipeline — ║  Overall       : SUCCESS ✓                                    ║
+2026-04-07 02:46:37  INFO      run_pipeline — ╚══════════════════════════════════════════════════════════════╝
+2026-04-07 02:46:37  INFO      run_pipeline — Run metadata written to pipeline_run_log.
+2026-04-07 03:04:53  INFO      run_pipeline — ╔══════════════════════════════════════════════════════════════╗
+2026-04-07 03:04:53  INFO      run_pipeline — ║         invoice-ocr-pipeline  ·  starting run               ║
+2026-04-07 03:04:53  INFO      run_pipeline — ╚══════════════════════════════════════════════════════════════╝
+
+2026-04-07 03:04:53  INFO      run_pipeline — ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2026-04-07 03:04:53  INFO      run_pipeline —   STEP 1 / 3  —  Generate invoices (PDF)
+2026-04-07 03:04:53  INFO      run_pipeline — ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2026-04-07 03:04:53  INFO      generate_invoices — Starting invoice generation — target: 20 invoices → raw_invoices
+2026-04-07 03:04:53  INFO      generate_invoices —   [OK] Generated INV-00001.pdf
+2026-04-07 03:04:53  INFO      generate_invoices —   [OK] Generated INV-00002.pdf
+2026-04-07 03:04:53  INFO      generate_invoices —   [OK] Generated INV-00003.pdf
+2026-04-07 03:04:53  INFO      generate_invoices —   [OK] Generated INV-00004.pdf
+2026-04-07 03:04:53  INFO      generate_invoices —   [OK] Generated INV-00005.pdf
+2026-04-07 03:04:53  INFO      generate_invoices —   [OK] Generated INV-00006.pdf
+2026-04-07 03:04:53  INFO      generate_invoices —   [OK] Generated INV-00007.pdf
+2026-04-07 03:04:53  INFO      generate_invoices —   [OK] Generated INV-00008.pdf
+2026-04-07 03:04:53  INFO      generate_invoices —   [OK] Generated INV-00009.pdf
+2026-04-07 03:04:53  INFO      generate_invoices —   [OK] Generated INV-00010.pdf
+2026-04-07 03:04:53  INFO      generate_invoices —   [OK] Generated INV-00011.pdf
+2026-04-07 03:04:53  INFO      generate_invoices —   [OK] Generated INV-00012.pdf
+2026-04-07 03:04:53  INFO      generate_invoices —   [OK] Generated INV-00013.pdf
+2026-04-07 03:04:53  INFO      generate_invoices —   [OK] Generated INV-00014.pdf
+2026-04-07 03:04:53  INFO      generate_invoices —   [OK] Generated INV-00015.pdf
+2026-04-07 03:04:54  INFO      generate_invoices —   [OK] Generated INV-00016.pdf
+2026-04-07 03:04:54  INFO      generate_invoices —   [OK] Generated INV-00017.pdf
+2026-04-07 03:04:54  INFO      generate_invoices —   [OK] Generated INV-00018.pdf
+2026-04-07 03:04:54  INFO      generate_invoices —   [OK] Generated INV-00019.pdf
+2026-04-07 03:04:54  INFO      generate_invoices —   [OK] Generated INV-00020.pdf
+2026-04-07 03:04:54  INFO      generate_invoices — Generation complete — 20 succeeded, 0 failed.
+2026-04-07 03:04:54  INFO      run_pipeline —   ✓  Completed in 0.10s
+
+2026-04-07 03:04:54  INFO      run_pipeline — ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2026-04-07 03:04:54  INFO      run_pipeline —   STEP 2 / 3  —  Extract OCR data → CSV
+2026-04-07 03:04:54  INFO      run_pipeline — ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2026-04-07 03:04:54  INFO      extract_ocr_data — Found 20 PDF(s) in raw_invoices. Starting extraction...
+2026-04-07 03:04:54  INFO      extract_ocr_data —   [OK]   INV-00001.pdf → invoice_id=INV-00001  total=471181.17
+2026-04-07 03:04:54  INFO      extract_ocr_data —   [OK]   INV-00002.pdf → invoice_id=INV-00002  total=369401.63
+2026-04-07 03:04:54  INFO      extract_ocr_data —   [OK]   INV-00003.pdf → invoice_id=INV-00003  total=220564.83
+2026-04-07 03:04:54  INFO      extract_ocr_data —   [OK]   INV-00004.pdf → invoice_id=INV-00004  total=133713.99
+2026-04-07 03:04:54  INFO      extract_ocr_data —   [OK]   INV-00005.pdf → invoice_id=INV-00005  total=418160.77
+2026-04-07 03:04:54  INFO      extract_ocr_data —   [OK]   INV-00006.pdf → invoice_id=INV-00006  total=392454.55
+2026-04-07 03:04:54  INFO      extract_ocr_data —   [OK]   INV-00007.pdf → invoice_id=INV-00007  total=185975.45
+2026-04-07 03:04:54  INFO      extract_ocr_data —   [OK]   INV-00008.pdf → invoice_id=INV-00008  total=140855.82
+2026-04-07 03:04:54  INFO      extract_ocr_data —   [OK]   INV-00009.pdf → invoice_id=INV-00009  total=192604.53
+2026-04-07 03:04:54  INFO      extract_ocr_data —   [OK]   INV-00010.pdf → invoice_id=INV-00010  total=302423.75
+2026-04-07 03:04:54  INFO      extract_ocr_data —   [OK]   INV-00011.pdf → invoice_id=INV-00011  total=237103.78
+2026-04-07 03:04:54  INFO      extract_ocr_data —   [OK]   INV-00012.pdf → invoice_id=INV-00012  total=188957.51
+2026-04-07 03:04:54  INFO      extract_ocr_data —   [OK]   INV-00013.pdf → invoice_id=INV-00013  total=926603.26
+2026-04-07 03:04:54  INFO      extract_ocr_data —   [OK]   INV-00014.pdf → invoice_id=INV-00014  total=393198.99
+2026-04-07 03:04:54  INFO      extract_ocr_data —   [OK]   INV-00015.pdf → invoice_id=INV-00015  total=169557.89
+2026-04-07 03:04:54  INFO      extract_ocr_data —   [OK]   INV-00016.pdf → invoice_id=INV-00016  total=170253.53
+2026-04-07 03:04:54  INFO      extract_ocr_data —   [OK]   INV-00017.pdf → invoice_id=INV-00017  total=168958.45
+2026-04-07 03:04:54  INFO      extract_ocr_data —   [OK]   INV-00018.pdf → invoice_id=INV-00018  total=240383.72
+2026-04-07 03:04:54  INFO      extract_ocr_data —   [OK]   INV-00019.pdf → invoice_id=INV-00019  total=611205.33
+2026-04-07 03:04:54  INFO      extract_ocr_data —   [OK]   INV-00020.pdf → invoice_id=INV-00020  total=166227.96
+2026-04-07 03:04:54  INFO      extract_ocr_data — Extraction complete — 20 succeeded, 0 failed.
+2026-04-07 03:04:54  INFO      extract_ocr_data — Extracted CSV written to: data\extracted_invoices.csv
+2026-04-07 03:04:54  INFO      run_pipeline —   ✓  Completed in 0.63s
+
+2026-04-07 03:04:54  INFO      run_pipeline — ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2026-04-07 03:04:54  INFO      run_pipeline —   STEP 3 / 3  —  Load CSV → SQLite database
+2026-04-07 03:04:54  INFO      run_pipeline — ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2026-04-07 03:04:54  INFO      load_to_database — Starting database load — source: data\extracted_invoices.csv → data\finance_system.db
+2026-04-07 03:04:54  INFO      load_to_database — Loaded 20 record(s) from CSV.
+2026-04-07 03:04:54  INFO      load_to_database — Schema initialised from schema.sql.
+2026-04-07 03:04:54  INFO      load_to_database — Load complete — 20 inserted, 0 skipped/failed.
+2026-04-07 03:04:54  INFO      load_to_database — DB summary — rows: 20 | total expenditure: Rs. 6,099,786.91 | avg: Rs. 304,989.35
+2026-04-07 03:04:54  INFO      run_pipeline —   ✓  Completed in 0.06s
+
+2026-04-07 03:04:54  INFO      run_pipeline — 
+2026-04-07 03:04:54  INFO      run_pipeline — ╔══════════════════════════════════════════════════════════════╗
+2026-04-07 03:04:54  INFO      run_pipeline — ║                      PIPELINE SUMMARY                       ║
+2026-04-07 03:04:54  INFO      run_pipeline — ╠══════════════════════════════════════════════════════════════╣
+2026-04-07 03:04:54  INFO      run_pipeline — ║  ✓  Step 1 — Generate PDFs       OK      0.10s                               ║
+2026-04-07 03:04:54  INFO      run_pipeline — ║  ✓  Step 2 — Extract OCR data    OK      0.63s                               ║
+2026-04-07 03:04:54  INFO      run_pipeline — ║  ✓  Step 3 — Load to database    OK      0.06s                               ║
+2026-04-07 03:04:54  INFO      run_pipeline — ╠══════════════════════════════════════════════════════════════╣
+2026-04-07 03:04:54  INFO      run_pipeline — ║  Total runtime : 0.79s                                        ║
+2026-04-07 03:04:54  INFO      run_pipeline — ║  Overall       : SUCCESS ✓                                    ║
+2026-04-07 03:04:54  INFO      run_pipeline — ╚══════════════════════════════════════════════════════════════╝
+2026-04-07 03:04:54  INFO      run_pipeline — Run metadata written to pipeline_run_log.
+2026-04-07 03:50:43  INFO      run_pipeline — ╔══════════════════════════════════════════════════════════════╗
+2026-04-07 03:50:43  INFO      run_pipeline — ║         invoice-ocr-pipeline  ·  starting run               ║
+2026-04-07 03:50:43  INFO      run_pipeline — ╚══════════════════════════════════════════════════════════════╝
+
+2026-04-07 03:50:43  INFO      run_pipeline — ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2026-04-07 03:50:43  INFO      run_pipeline —   STEP 1 / 3  —  Generate invoices (PDF)
+2026-04-07 03:50:43  INFO      run_pipeline — ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2026-04-07 03:50:43  INFO      generate_invoices — Starting invoice generation — target: 20 invoices → raw_invoices
+2026-04-07 03:50:43  INFO      generate_invoices —   [OK]   INV-00001.pdf
+2026-04-07 03:50:43  INFO      generate_invoices —   [OK]   INV-00002.pdf
+2026-04-07 03:50:43  INFO      generate_invoices —   [OK]   INV-00003.pdf
+2026-04-07 03:50:43  INFO      generate_invoices —   [OK]   INV-00004.pdf
+2026-04-07 03:50:43  INFO      generate_invoices —   [OK]   INV-00005.pdf
+2026-04-07 03:50:43  INFO      generate_invoices —   [OK]   INV-00006.pdf
+2026-04-07 03:50:43  INFO      generate_invoices —   [OK]   INV-00007.pdf
+2026-04-07 03:50:43  INFO      generate_invoices —   [OK]   INV-00008.pdf
+2026-04-07 03:50:43  INFO      generate_invoices —   [OK]   INV-00009.pdf
+2026-04-07 03:50:43  INFO      generate_invoices —   [OK]   INV-00010.pdf
+2026-04-07 03:50:43  INFO      generate_invoices —   [OK]   INV-00011.pdf
+2026-04-07 03:50:43  INFO      generate_invoices —   [OK]   INV-00012.pdf
+2026-04-07 03:50:43  INFO      generate_invoices —   [OK]   INV-00013.pdf
+2026-04-07 03:50:43  INFO      generate_invoices —   [OK]   INV-00014.pdf
+2026-04-07 03:50:43  INFO      generate_invoices —   [OK]   INV-00015.pdf
+2026-04-07 03:50:43  INFO      generate_invoices —   [OK]   INV-00016.pdf
+2026-04-07 03:50:43  INFO      generate_invoices —   [OK]   INV-00017.pdf
+2026-04-07 03:50:44  INFO      generate_invoices —   [OK]   INV-00018.pdf
+2026-04-07 03:50:44  INFO      generate_invoices —   [OK]   INV-00019.pdf
+2026-04-07 03:50:44  INFO      generate_invoices —   [OK]   INV-00020.pdf
+2026-04-07 03:50:44  INFO      generate_invoices — Generation complete — 20 succeeded, 0 failed.
+2026-04-07 03:50:44  INFO      run_pipeline —   ✓  Completed in 0.10s
+
+2026-04-07 03:50:44  INFO      run_pipeline — ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2026-04-07 03:50:44  INFO      run_pipeline —   STEP 2 / 3  —  Extract OCR data → CSV
+2026-04-07 03:50:44  INFO      run_pipeline — ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2026-04-07 03:50:44  INFO      extract_ocr_data — Found 20 PDF(s) → starting extraction
+2026-04-07 03:50:44  INFO      extract_ocr_data —   [OK  ] INV-00001.pdf         id=INV-00001       total=Rs.284,169.44  tax=Rs.43,347.88  conf=HIGH  via=text_layer
+2026-04-07 03:50:44  INFO      extract_ocr_data —   [OK  ] INV-00002.pdf         id=INV-00002       total=Rs.363,925.89  tax=Rs.55,514.12  conf=HIGH  via=text_layer
+2026-04-07 03:50:44  INFO      extract_ocr_data —   [OK  ] INV-00003.pdf         id=INV-00003       total=Rs.599,410.83  tax=Rs.91,435.55  conf=HIGH  via=text_layer
+2026-04-07 03:50:44  INFO      extract_ocr_data —   [OK  ] INV-00004.pdf         id=INV-00004       total=Rs.619,639.42  tax=Rs.94,521.27  conf=HIGH  via=text_layer
+2026-04-07 03:50:44  INFO      extract_ocr_data —   [OK  ] INV-00005.pdf         id=INV-00005       total=Rs.27,212.48  tax=Rs.4,151.06  conf=HIGH  via=text_layer
+2026-04-07 03:50:44  INFO      extract_ocr_data —   [OK  ] INV-00006.pdf         id=INV-00006       total=Rs.456,161.10  tax=Rs.69,583.90  conf=HIGH  via=text_layer
+2026-04-07 03:50:44  INFO      extract_ocr_data —   [OK  ] INV-00007.pdf         id=INV-00007       total=Rs.46,677.20  tax=Rs.7,120.25  conf=HIGH  via=text_layer
+2026-04-07 03:50:44  INFO      extract_ocr_data —   [OK  ] INV-00008.pdf         id=INV-00008       total=Rs.474,154.16  tax=Rs.72,328.60  conf=HIGH  via=text_layer
+2026-04-07 03:50:44  INFO      extract_ocr_data —   [OK  ] INV-00009.pdf         id=INV-00009       total=Rs.181,786.73  tax=Rs.27,730.18  conf=HIGH  via=text_layer
+2026-04-07 03:50:44  INFO      extract_ocr_data —   [OK  ] INV-00010.pdf         id=INV-00010       total=Rs.307,529.91  tax=Rs.46,911.34  conf=HIGH  via=text_layer
+2026-04-07 03:50:44  INFO      extract_ocr_data —   [OK  ] INV-00011.pdf         id=INV-00011       total=Rs.409,155.74  tax=Rs.62,413.59  conf=HIGH  via=text_layer
+2026-04-07 03:50:44  INFO      extract_ocr_data —   [OK  ] INV-00012.pdf         id=INV-00012       total=Rs.448,499.31  tax=Rs.68,415.15  conf=HIGH  via=text_layer
+2026-04-07 03:50:44  INFO      extract_ocr_data —   [OK  ] INV-00013.pdf         id=INV-00013       total=Rs.979,947.77  tax=Rs.149,483.56  conf=HIGH  via=text_layer
+2026-04-07 03:50:44  INFO      extract_ocr_data —   [OK  ] INV-00014.pdf         id=INV-00014       total=Rs.758,737.68  tax=Rs.115,739.65  conf=HIGH  via=text_layer
+2026-04-07 03:50:44  INFO      extract_ocr_data —   [OK  ] INV-00015.pdf         id=INV-00015       total=Rs.535,952.42  tax=Rs.81,755.45  conf=HIGH  via=text_layer
+2026-04-07 03:50:44  INFO      extract_ocr_data —   [OK  ] INV-00016.pdf         id=INV-00016       total=Rs.28,485.88  tax=Rs.4,345.30  conf=HIGH  via=text_layer
+2026-04-07 03:50:44  INFO      extract_ocr_data —   [OK  ] INV-00017.pdf         id=INV-00017       total=Rs.292,348.59  tax=Rs.44,595.55  conf=HIGH  via=text_layer
+2026-04-07 03:50:44  INFO      extract_ocr_data —   [OK  ] INV-00018.pdf         id=INV-00018       total=Rs.206,215.67  tax=Rs.31,456.63  conf=HIGH  via=text_layer
+2026-04-07 03:50:44  INFO      extract_ocr_data —   [OK  ] INV-00019.pdf         id=INV-00019       total=Rs.96,257.23  tax=Rs.14,683.31  conf=HIGH  via=text_layer
+2026-04-07 03:50:44  INFO      extract_ocr_data —   [OK  ] INV-00020.pdf         id=INV-00020       total=Rs.631,648.27  tax=Rs.96,353.13  conf=HIGH  via=text_layer
+2026-04-07 03:50:44  INFO      extract_ocr_data — ──────────────────────────────────────────────────────────────
+2026-04-07 03:50:44  INFO      extract_ocr_data — Extraction summary
+2026-04-07 03:50:44  INFO      extract_ocr_data —   Total processed : 20
+2026-04-07 03:50:44  INFO      extract_ocr_data —   Confidence HIGH : 20
+2026-04-07 03:50:44  INFO      extract_ocr_data —   Confidence LOW  : 0
+2026-04-07 03:50:44  INFO      extract_ocr_data —   Confidence MISS : 0
+2026-04-07 03:50:44  INFO      extract_ocr_data —   Flagged (total mismatch): 0
+2026-04-07 03:50:44  INFO      extract_ocr_data —   Used OCR fallback        : 0
+2026-04-07 03:50:44  INFO      extract_ocr_data —   Failed (unreadable)      : 0
+2026-04-07 03:50:44  INFO      extract_ocr_data —   Output → data\extracted_invoices.csv
+2026-04-07 03:50:44  INFO      extract_ocr_data — ──────────────────────────────────────────────────────────────
+2026-04-07 03:50:44  INFO      run_pipeline —   ✓  Completed in 0.61s
+
+2026-04-07 03:50:44  INFO      run_pipeline — ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2026-04-07 03:50:44  INFO      run_pipeline —   STEP 3 / 3  —  Load CSV → SQLite database
+2026-04-07 03:50:44  INFO      run_pipeline — ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2026-04-07 03:50:44  INFO      load_to_database — Starting database load — source: data\extracted_invoices.csv → data\finance_system.db
+2026-04-07 03:50:44  INFO      load_to_database — Loaded 20 record(s) from CSV.
+2026-04-07 03:50:44  INFO      load_to_database — Schema initialised from schema.sql.
+2026-04-07 03:50:44  INFO      load_to_database — Load complete — 20 inserted, 0 skipped/failed.
+2026-04-07 03:50:44  INFO      load_to_database — DB summary — rows: 20 | total expenditure: Rs. 7,747,915.72 | avg: Rs. 387,395.79
+2026-04-07 03:50:44  INFO      run_pipeline —   ✓  Completed in 0.37s
+
+2026-04-07 03:50:44  INFO      run_pipeline — 
+2026-04-07 03:50:44  INFO      run_pipeline — ╔══════════════════════════════════════════════════════════════╗
+2026-04-07 03:50:44  INFO      run_pipeline — ║                      PIPELINE SUMMARY                       ║
+2026-04-07 03:50:44  INFO      run_pipeline — ╠══════════════════════════════════════════════════════════════╣
+2026-04-07 03:50:44  INFO      run_pipeline — ║  ✓  Step 1 — Generate PDFs       OK      0.10s                               ║
+2026-04-07 03:50:44  INFO      run_pipeline — ║  ✓  Step 2 — Extract OCR data    OK      0.61s                               ║
+2026-04-07 03:50:44  INFO      run_pipeline — ║  ✓  Step 3 — Load to database    OK      0.37s                               ║
+2026-04-07 03:50:44  INFO      run_pipeline — ╠══════════════════════════════════════════════════════════════╣
+2026-04-07 03:50:44  INFO      run_pipeline — ║  Total runtime : 1.09s                                        ║
+2026-04-07 03:50:44  INFO      run_pipeline — ║  Overall       : SUCCESS ✓                                    ║
+2026-04-07 03:50:44  INFO      run_pipeline — ╚══════════════════════════════════════════════════════════════╝
+2026-04-07 03:50:45  INFO      run_pipeline — Run metadata written to pipeline_run_log.
