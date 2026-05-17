@@ -1,40 +1,28 @@
 ﻿# Python
 __pycache__/
-*.py[cod]
+*.pyc
 *.pyo
-*.pyd
-.Python
-*.egg-info/
-dist/
-build/
-.eggs/
-
-# Virtual environments
 venv/
 .venv/
-env/
+*.egg-info/
 
-# Environment / secrets
+# Secrets
 .env
-.env.*
+!.env.example
 
-# Pipeline data (generated at runtime — do not commit)
-raw_invoices/
-data/*.csv
-logs/
-*.log
-
-# Database
+# Database — use schema.sql instead
 *.db
+*.sqlite
 
-# Testing
-.pytest_cache/
+# Pipeline outputs (generated, not source)
+raw_invoices/
+data/extracted_invoices.csv
+data/failed_invoices.csv
+data/pipeline.log
+!data/.gitkeep
 
-# OS
+# OS noise
 .DS_Store
 Thumbs.db
-
-# IDE
-.vscode/
 .idea/
-*.swpd
+.vscode/
