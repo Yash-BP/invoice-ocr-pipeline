@@ -138,12 +138,13 @@ class InvoiceRecord:
     igst:                    float | None = None
     grand_total:             float | None = None
     grand_total_confidence:  str = "MISSING"
+    overall_confidence:      str = "MISSING"      # ADDED: explicitly declare as a field for asdict()
     extraction_method:       str = "text_layer"   # text_layer | ocr
     validation_passed:       int = 1
     validation_note:         str = ""
     source_file:             str = ""
 
-    def overall_confidence(self) -> str:
+    def compute_overall_confidence(self) -> str:  # CHANGED: renamed from overall_confidence
         """Aggregate confidence across core financial fields."""
         scores = {
             "HIGH": 2, "LOW": 1, "MISSING": 0
@@ -437,7 +438,7 @@ def main() -> list[dict]:
             record = extract_from_pdf(pdf_path)
             extracted.append(record)
 
-            conf   = record.overall_confidence()
+            conf   = record.compute_overall_confidence()  # CHANGED: updated method call
             status = "OK  " if record.validation_passed else "WARN"
             logger.info(
                 "  [%s] %-20s  id=%-14s  total=%-12s  tax=%-10s  conf=%s  via=%s",
@@ -459,15 +460,18 @@ def main() -> list[dict]:
             failed.append({"filename": pdf_path.name, "reason": reason})
 
     # ── Write CSV ─────────────────────────────────────────────────────────
+    for r in extracted:                                           # ADDED: explicitly loop and set
+        r.overall_confidence = r.compute_overall_confidence()     # ADDED: the field value
+        
     extracted_dicts = [asdict(r) for r in extracted]
     if extracted_dicts:
         df = pd.DataFrame(extracted_dicts)
         df.to_csv(EXTRACTED_CSV, index=False)
 
         # Observability summary
-        n_high    = sum(1 for r in extracted if r.overall_confidence() == "HIGH")
-        n_low     = sum(1 for r in extracted if r.overall_confidence() == "LOW")
-        n_missing = sum(1 for r in extracted if r.overall_confidence() == "MISSING")
+        n_high    = sum(1 for r in extracted if r.overall_confidence == "HIGH")     # CHANGED: no parens
+        n_low     = sum(1 for r in extracted if r.overall_confidence == "LOW")      # CHANGED: no parens
+        n_missing = sum(1 for r in extracted if r.overall_confidence == "MISSING")  # CHANGED: no parens
         n_flagged = sum(1 for r in extracted if not r.validation_passed)
         n_ocr     = sum(1 for r in extracted if r.extraction_method == "ocr")
 
