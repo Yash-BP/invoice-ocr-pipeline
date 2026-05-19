@@ -21,8 +21,8 @@ def load_data():
     df = pd.read_sql_query(query, conn)
     conn.close()
     
-    # Convert string dates to actual datetime objects for graphing
-    df['invoice_date'] = pd.to_datetime(df['invoice_date'], format='%d-%m-%Y', errors='coerce')
+    # Fast, optimized parsing engine for mixed invoice date formats
+    df['invoice_date'] = pd.to_datetime(df['invoice_date'], format='mixed', errors='coerce')
     return df
 
 df = load_data()
