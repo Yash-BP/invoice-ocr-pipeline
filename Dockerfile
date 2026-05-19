@@ -4,9 +4,11 @@ FROM python:3.13-slim
 # Set the working directory inside the container
 WORKDIR /app
 
-# Install system dependencies (often required for PDF and data processing libraries)
+# Install system dependencies (build tools + Tesseract OCR engine)
 RUN apt-get update && apt-get install -y \
     build-essential \
+    tesseract-ocr \
+    poppler-utils \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements file first to leverage Docker layer caching
