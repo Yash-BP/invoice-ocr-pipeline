@@ -1,4 +1,4 @@
-# 🧾 Invoice OCR & Analytics Pipeline
+# Invoice OCR & Analytics Pipeline
 
 > End-to-end Python ETL pipeline that eliminates manual invoice data entry for Indian SMEs —  
 > extracting structured financial data from raw PDF invoices, validating it, and loading it into  
@@ -12,7 +12,7 @@
 
 ---
 
-## 📸 Dashboard Preview
+## Dashboard Preview
 
 ![GST Invoice Analytics Dashboard](dashboard_charts.png)
 
@@ -20,7 +20,7 @@
 
 ---
 
-## 🎯 The Business Problem
+## The Business Problem
 
 Indian SMEs receive dozens of PDF invoices weekly and manually re-type every field —  
 invoice number, vendor name, GST amount, grand total — into spreadsheets or accounting tools.  
@@ -28,7 +28,7 @@ This pipeline **automates that entirely**.
 
 ---
 
-## ⚡ Quick Start
+## Quick Start
 
 ```bash
 # 1. Clone the repo
@@ -53,7 +53,7 @@ streamlit run dashboard.py
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 ┌────────────────────── run_pipeline.py ──────────────────────┐
@@ -68,7 +68,7 @@ streamlit run dashboard.py
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 invoice-ocr-pipeline/
@@ -85,13 +85,13 @@ invoice-ocr-pipeline/
 │   └── failed_invoices.csv
 ├── schema.sql
 ├── requirements.txt
-├── .env.example
+├── .env
 └── README.md
 ```
 
 ---
 
-## 🔄 Pipeline Steps
+## Pipeline Steps
 
 | Step | Script                    | What it does |
 |------|---------------------------|--------------|
@@ -101,7 +101,7 @@ invoice-ocr-pipeline/
 
 ---
 
-## 📊 Database Schema
+## Database Schema
 
 ```sql
 CREATE TABLE processed_invoices (
@@ -120,7 +120,7 @@ CREATE TABLE processed_invoices (
 
 ---
 
-## 🧪 Running Tests
+## Running Tests
 
 ```bash
 pytest tests/ -v
@@ -128,13 +128,7 @@ pytest tests/ -v
 
 ---
 
-## ⚙️ Configuration (.env)
-
-Copy `.env.example` → `.env` and edit if needed.
-
----
-
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Language**: Python 3.13
 - **PDF Parsing**: pdfplumber
@@ -146,7 +140,7 @@ Copy `.env.example` → `.env` and edit if needed.
 
 ---
 
-## 💡 Why This Project Stands Out
+## Why This Project Stands Out
 
 - Solves a real business problem for Indian SMEs
 - Built-in data validation (`validation_passed` column)
