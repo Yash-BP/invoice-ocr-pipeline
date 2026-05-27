@@ -1,28 +1,29 @@
-﻿# Python
+﻿# Virtual Environment
+venv/
+.venv/
+
+# Environment variables
+.env
+
+# Python cache
 __pycache__/
 *.pyc
 *.pyo
-venv/
-.venv/
-*.egg-info/
+.pytest_cache/
 
-# Secrets
-.env
-!.env.example
-
-# Database — use schema.sql instead
-*.db
-*.sqlite
-
-# Pipeline outputs (generated, not source)
+# Project data & outputs
+data/*.db
+data/*.csv
 raw_invoices/
-data/extracted_invoices.csv
-data/failed_invoices.csv
-data/pipeline.log
-!data/.gitkeep
 
-# OS noise
+# Logs
+*.log
+logs/
+
+# OS generated files
 .DS_Store
 Thumbs.db
-.idea/
+
+# IDE files
 .vscode/
+.idea/
