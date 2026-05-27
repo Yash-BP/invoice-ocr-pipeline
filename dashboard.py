@@ -13,15 +13,22 @@ st.markdown("Automated insights extracted from OCR-processed PDF invoices.")
 def load_data():
     conn = sqlite3.connect("data/finance_system.db")
     query = """
-        SELECT invoice_id, invoice_date, vendor_name, 
-               subtotal, tax_amount, grand_total, validation_passed
+        SELECT 
+            invoice_id, 
+            invoice_date, 
+            vendor_name, 
+            subtotal, 
+            tax_amount, 
+            grand_total, 
+            validation_passed,
+            overall_confidence,
+            extraction_method
         FROM processed_invoices
         WHERE validation_passed = 1
     """
     df = pd.read_sql_query(query, conn)
     conn.close()
     
-    # Fast, optimized parsing engine for mixed invoice date formats
     df['invoice_date'] = pd.to_datetime(df['invoice_date'], format='mixed', errors='coerce')
     return df
 
