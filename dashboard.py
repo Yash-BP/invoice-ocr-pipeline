@@ -11,26 +11,39 @@ st.markdown("Automated insights extracted from OCR-processed PDF invoices.")
 # 1. Securely load data from the SQLite Database
 @st.cache_data
 def load_data():
-    conn = sqlite3.connect("data/finance_system.db")
-    query = """
-        SELECT 
-            invoice_id, 
-            invoice_date, 
-            vendor_name, 
-            subtotal, 
-            tax_amount, 
-            grand_total, 
-            validation_passed,
-            overall_confidence,
-            extraction_method
-        FROM processed_invoices
-        WHERE validation_passed = 1
-    """
-    df = pd.read_sql_query(query, conn)
-    conn.close()
-    
-    df['invoice_date'] = pd.to_datetime(df['invoice_date'], format='mixed', errors='coerce')
-    return df
+    import os
+    db_path = "data/finance_system.db"
+
+    # If DB file is missing or empty, return empty DataFrame
+    if not os.path.exists(db_path) or os.path.getsize(db_path) == 0:
+        return pd.DataFrame()
+
+    try:
+        conn = sqlite3.connect(db_path)
+        query = """
+            SELECT 
+                invoice_id, 
+                invoice_date, 
+                vendor_name, 
+                subtotal, 
+                tax_amount, 
+                grand_total, 
+                validation_passed,
+                overall_confidence,
+                extraction_method
+            FROM processed_invoices
+            WHERE validation_passed = 1
+        """
+        df = pd.read_sql_query(query, conn)
+        conn.close()
+
+        if not df.empty and "invoice_date" in df.columns:
+            df['invoice_date'] = pd.to_datetime(df['invoice_date'], errors='coerce')
+        return df
+
+    except (sqlite3.OperationalError, pd.errors.DatabaseError):
+        # Table not found or schema missing
+        return pd.DataFrame()
 
 df = load_data()
 
