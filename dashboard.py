@@ -2,48 +2,42 @@ import sqlite3
 import pandas as pd
 import streamlit as st
 import plotly.express as px
+import os
 
 # Configure the web page
 st.set_page_config(page_title="Invoice Analytics", page_icon="📊", layout="wide")
-st.title("📊 GST Invoice Analytics Dashboard")
+st.title("GST Invoice Analytics Dashboard")
 st.markdown("Automated insights extracted from OCR-processed PDF invoices.")
 
 # 1. Securely load data from the SQLite Database
 @st.cache_data
 def load_data():
-    import os
     db_path = "data/finance_system.db"
+    csv_path = "data/processed_invoices.csv"
 
-    # If DB file is missing or empty, return empty DataFrame
-    if not os.path.exists(db_path) or os.path.getsize(db_path) == 0:
-        return pd.DataFrame()
+    # Prefer database if available locally
+    if os.path.exists(db_path) and os.path.getsize(db_path) > 0:
+        try:
+            conn = sqlite3.connect(db_path)
+            df = pd.read_sql_query("""
+                SELECT * FROM processed_invoices 
+                WHERE validation_passed = 1
+            """, conn)
+            conn.close()
+            if not df.empty and "invoice_date" in df.columns:
+                df['invoice_date'] = pd.to_datetime(df['invoice_date'], errors='coerce')
+            return df
+        except Exception:
+            pass  # fall through to CSV fallback
 
-    try:
-        conn = sqlite3.connect(db_path)
-        query = """
-            SELECT 
-                invoice_id, 
-                invoice_date, 
-                vendor_name, 
-                subtotal, 
-                tax_amount, 
-                grand_total, 
-                validation_passed,
-                overall_confidence,
-                extraction_method
-            FROM processed_invoices
-            WHERE validation_passed = 1
-        """
-        df = pd.read_sql_query(query, conn)
-        conn.close()
-
-        if not df.empty and "invoice_date" in df.columns:
+    # Fallback to CSV (required for Streamlit Cloud)
+    if os.path.exists(csv_path):
+        df = pd.read_csv(csv_path)
+        if "invoice_date" in df.columns:
             df['invoice_date'] = pd.to_datetime(df['invoice_date'], errors='coerce')
         return df
 
-    except (sqlite3.OperationalError, pd.errors.DatabaseError):
-        # Table not found or schema missing
-        return pd.DataFrame()
+    return pd.DataFrame()
 
 df = load_data()
 
