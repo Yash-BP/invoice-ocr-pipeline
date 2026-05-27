@@ -19,10 +19,8 @@ def load_data():
     if os.path.exists(db_path) and os.path.getsize(db_path) > 0:
         try:
             conn = sqlite3.connect(db_path)
-            df = pd.read_sql_query("""
-                SELECT * FROM processed_invoices 
-                WHERE validation_passed = 1
-            """, conn)
+            # Removed the Phase 2 WHERE filter to prevent returning an empty dataset
+            df = pd.read_sql_query("SELECT * FROM processed_invoices", conn)
             conn.close()
             if not df.empty and "invoice_date" in df.columns:
                 df['invoice_date'] = pd.to_datetime(df['invoice_date'], errors='coerce')
