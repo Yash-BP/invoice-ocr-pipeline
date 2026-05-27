@@ -30,7 +30,7 @@ This pipeline **automates that entirely**.
 
 ## Quick Start
 
-```bash
+```
 # 1. Clone the repo
 git clone https://github.com/Yash-BP/invoice-ocr-pipeline.git
 cd invoice-ocr-pipeline

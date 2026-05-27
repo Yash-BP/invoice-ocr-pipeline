@@ -32,13 +32,14 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-# ---------------------------------------------------------------------------
-# Bootstrap — load .env before importing pipeline modules so they all pick
-# up the same resolved paths.
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------
+# Bootstrap
+# ----------------------------------------------------------------------
 load_dotenv()
 
-Path("data").mkdir(parents=True, exist_ok=True)   # ensure log dir exists
+# Ensure required directories exist
+Path("data").mkdir(parents=True, exist_ok=True)
+Path("raw_invoices").mkdir(parents=True, exist_ok=True)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -51,40 +52,30 @@ logging.basicConfig(
 )
 logger = logging.getLogger("run_pipeline")
 
-# Import pipeline modules AFTER logging is configured so their module-level
-# loggers inherit the root handler setup.
-import scripts.generate_invoices as gen_step    # noqa: E402
-import scripts.extract_ocr_data  as ext_step   # noqa: E402
-import scripts.load_to_database  as load_step  # noqa: E402
+# Import from scripts/ (this is the correct structure now)
+import scripts.generate_invoices as gen_step
+import scripts.extract_ocr_data  as ext_step
+import scripts.load_to_database  as load_step
 
 DB_PATH = Path(os.getenv("DB_PATH", "data/finance_system.db"))
 
-# ---------------------------------------------------------------------------
+
+# ----------------------------------------------------------------------
 # Step runner
-# ---------------------------------------------------------------------------
-
+# ----------------------------------------------------------------------
 def _run_step(label: str, fn) -> tuple[bool, float, object]:
-    """
-    Execute a single pipeline step.
-
-    Args:
-        label: Human-readable step name used in logging.
-        fn:    Callable with no required arguments; may return any value.
-
-    Returns:
-        (success, elapsed_seconds, return_value)
-        On exception: (False, elapsed, None) — never re-raises.
-    """
+    """Execute a single pipeline step with timing and error handling."""
     logger.info("━" * 62)
     logger.info("  %s", label)
     logger.info("━" * 62)
+    
     t0 = time.perf_counter()
     try:
-        result  = fn()
+        result = fn()
         elapsed = time.perf_counter() - t0
         logger.info("  ✓  Completed in %.2fs\n", elapsed)
         return True, elapsed, result
-    except Exception as exc:                        # noqa: BLE001
+    except Exception as exc:
         elapsed = time.perf_counter() - t0
         logger.error(
             "  ✗  FAILED after %.2fs — %s: %s",
@@ -94,18 +85,17 @@ def _run_step(label: str, fn) -> tuple[bool, float, object]:
         return False, elapsed, None
 
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------
 # Audit log
-# ---------------------------------------------------------------------------
-
+# ----------------------------------------------------------------------
 def _write_run_log(
-    invoices_found:  int,
+    invoices_found: int,
     invoices_loaded: int,
     invoices_failed: int,
-    duration:        float,
-    notes:           str,
+    duration: float,
+    notes: str,
 ) -> None:
-    """Append one row to pipeline_run_log for operational auditing."""
+    """Write pipeline run metadata to database."""
     try:
         with sqlite3.connect(DB_PATH) as conn:
             conn.execute(
@@ -123,10 +113,9 @@ def _write_run_log(
         logger.warning("Could not write to pipeline_run_log: %s", exc)
 
 
-# ---------------------------------------------------------------------------
-# Entry point
-# ---------------------------------------------------------------------------
-
+# ----------------------------------------------------------------------
+# Main Entry Point
+# ----------------------------------------------------------------------
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="invoice-ocr-pipeline — full ETL orchestrator",
@@ -135,8 +124,7 @@ def main() -> int:
     parser.add_argument(
         "--skip-gen",
         action="store_true",
-        help="Skip Step 1 (PDF generation). Useful when raw_invoices/ "
-             "already contains PDFs you want to re-process.",
+        help="Skip Step 1 (PDF generation). Useful when raw_invoices/ already contains PDFs.",
     )
     args = parser.parse_args()
 
@@ -148,7 +136,7 @@ def main() -> int:
 
     step_results: dict[str, tuple[bool, float, object]] = {}
 
-    # ── Step 1: Generate PDFs ──────────────────────────────────────────────
+    # Step 1: Generate PDFs
     if args.skip_gen:
         logger.info("Step 1 skipped (--skip-gen).\n")
         step_results["1_generate"] = (True, 0.0, None)
@@ -158,20 +146,17 @@ def main() -> int:
             gen_step.main,
         )
 
-    # ── Step 2: Extract ────────────────────────────────────────────────────
+    # Step 2: Extract OCR data
     step_results["2_extract"] = _run_step(
         "STEP 2 / 3  —  Extract OCR data → CSV",
         ext_step.main,
     )
 
-    # ── Step 3: Load (guard against empty extraction) ─────────────────────
-    extracted_records = step_results["2_extract"][2]   # list[dict] | None
+    # Step 3: Load to Database
+    extracted_records = step_results["2_extract"][2]
 
     if not extracted_records:
-        logger.error(
-            "Step 2 returned zero records — Step 3 skipped to prevent "
-            "overwriting the database with empty data.\n"
-        )
+        logger.error("Step 2 returned zero records — Step 3 skipped.\n")
         step_results["3_load"] = (False, 0.0, None)
     else:
         step_results["3_load"] = _run_step(
@@ -179,10 +164,10 @@ def main() -> int:
             load_step.main,
         )
 
-    # ── Summary ───────────────────────────────────────────────────────────
+    # Summary
     total_elapsed = time.perf_counter() - pipeline_start
-    any_failed    = any(not ok for ok, _, _ in step_results.values())
-    overall       = "SUCCESS ✓" if not any_failed else "FAILED  ✗"
+    any_failed = any(not ok for ok, _, _ in step_results.values())
+    overall = "SUCCESS ✓" if not any_failed else "FAILED ✗"
 
     step_labels = {
         "1_generate": "Step 1 — Generate PDFs     ",
@@ -194,18 +179,20 @@ def main() -> int:
     logger.info("╔══════════════════════════════════════════════════════════════╗")
     logger.info("║                      PIPELINE SUMMARY                       ║")
     logger.info("╠══════════════════════════════════════════════════════════════╣")
+    
     for key, label in step_labels.items():
         ok, elapsed, _ = step_results[key]
-        icon   = "✓" if ok else "✗"
+        icon = "✓" if ok else "✗"
         status = "OK  " if ok else "FAIL"
         logger.info("║  %s  %s  %s  %6.2fs                               ║",
                     icon, label, status, elapsed)
+
     logger.info("╠══════════════════════════════════════════════════════════════╣")
     logger.info("║  Total runtime : %-44s ║", f"{total_elapsed:.2f}s")
     logger.info("║  Overall       : %-44s ║", overall)
     logger.info("╚══════════════════════════════════════════════════════════════╝")
 
-    # ── Audit log ─────────────────────────────────────────────────────────
+    # Audit Log
     n_found = len(extracted_records) if extracted_records else 0
     _write_run_log(
         invoices_found=n_found,

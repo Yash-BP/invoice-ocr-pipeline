@@ -198,18 +198,18 @@ def main() -> None:
     except sqlite3.Error as exc:
         logger.warning("Could not run summary query: %s", exc)
 
+    # ---- Export fresh CSV fallback for Streamlit Cloud deployment ----
+    try:
+        with sqlite3.connect(DB_PATH) as conn:
+            export_df = pd.read_sql_query("SELECT * FROM processed_invoices", conn)
+        
+        output_csv = Path("data/processed_invoices.csv")
+        output_csv.parent.mkdir(parents=True, exist_ok=True)
+        export_df.to_csv(output_csv, index=False)
+        logger.info("Exported %d rows to %s", len(export_df), output_csv)
+    except Exception as e:
+        logger.warning("Failed to export processed_invoices.csv: %s", e)
+
 
 if __name__ == "__main__":
     main()
-
-        # Export fresh CSV for Streamlit Cloud deployment
-    try:
-        conn = sqlite3.connect(DB_PATH)
-        df = pd.read_sql_query("SELECT * FROM processed_invoices", conn)
-        conn.close()
-
-        output_csv = Path("data/processed_invoices.csv")
-        df.to_csv(output_csv, index=False)
-        logger.info(f"Exported {len(df)} rows to {output_csv}")
-    except Exception as e:
-        logger.warning(f"Failed to export processed_invoices.csv: {e}")
