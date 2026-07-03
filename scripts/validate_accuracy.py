@@ -29,10 +29,17 @@ import argparse
 import logging
 import os
 import sqlite3
+import sys
 from pathlib import Path
 
 import pandas as pd
 from dotenv import load_dotenv
+
+# Ensure stdout and stderr handle UTF-8 encoding on Windows consoles
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8")
 
 load_dotenv()
 logger = logging.getLogger("validate_accuracy")
@@ -166,7 +173,8 @@ def generate_report(extracted: pd.DataFrame, truth: pd.DataFrame) -> None:
         field_results[field] = (correct, scoreable)
 
         accuracy = correct / scoreable * 100 if scoreable else 0.0
-        bar = "█" * int(accuracy // 5) + "░" * (20 - int(accuracy // 5))
+        bar_len = int(accuracy // 5)
+        bar = f"[{'=' * bar_len}{' ' * (20 - bar_len)}]"
         print(f"  {field:<18}  {correct:>8}  {scoreable:>7}  {accuracy:>8.1f}%  {bar}")
 
     # Overall
@@ -195,15 +203,15 @@ def generate_report(extracted: pd.DataFrame, truth: pd.DataFrame) -> None:
             failed_rows.append((row["invoice_id"], row_issues))
 
     if failed_rows:
-        print(f"\n  ⚠  Mismatches ({len(failed_rows)} invoices):")
+        print(f"\n  [!]  Mismatches ({len(failed_rows)} invoices):")
         for inv_id, issues in failed_rows[:10]:  # cap output at 10
             print(f"\n  {inv_id}:")
             for issue in issues:
-                print(f"    • {issue}")
+                print(f"    - {issue}")
         if len(failed_rows) > 10:
             print(f"\n  ... and {len(failed_rows) - 10} more.")
     else:
-        print("\n  ✅  All extracted values match ground truth!")
+        print("\n  [OK]  All extracted values match ground truth!")
 
     print()
 

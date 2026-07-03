@@ -1,4 +1,4 @@
-﻿"""
+"""
 extract_ocr_data.py  —  Step 2 of the invoice-ocr-pipeline
 ===========================================================
 Real-world extraction engine that handles:
@@ -427,7 +427,7 @@ def main() -> list[dict]:
         logger.warning("No PDFs found in %s.", RAW_INVOICES_DIR)
         return []
 
-    logger.info("Found %d PDF(s) → starting extraction", len(pdf_files))
+    logger.info("Found %d PDF(s) -> starting extraction", len(pdf_files))
     EXTRACTED_CSV.parent.mkdir(parents=True, exist_ok=True)
 
     extracted: list[InvoiceRecord] = []
@@ -475,7 +475,7 @@ def main() -> list[dict]:
         n_flagged = sum(1 for r in extracted if not r.validation_passed)
         n_ocr     = sum(1 for r in extracted if r.extraction_method == "ocr")
 
-        logger.info("─" * 62)
+        logger.info("-" * 62)
         logger.info("Extraction summary")
         logger.info("  Total processed : %d", len(extracted))
         logger.info("  Confidence HIGH : %d", n_high)
@@ -484,8 +484,8 @@ def main() -> list[dict]:
         logger.info("  Flagged (total mismatch): %d", n_flagged)
         logger.info("  Used OCR fallback        : %d", n_ocr)
         logger.info("  Failed (unreadable)      : %d", len(failed))
-        logger.info("  Output → %s", EXTRACTED_CSV)
-        logger.info("─" * 62)
+        logger.info("  Output -> %s", EXTRACTED_CSV)
+        logger.info("-" * 62)
     else:
         logger.warning("No records extracted.")
 

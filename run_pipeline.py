@@ -65,20 +65,20 @@ DB_PATH = Path(os.getenv("DB_PATH", "data/finance_system.db"))
 # ----------------------------------------------------------------------
 def _run_step(label: str, fn) -> tuple[bool, float, object]:
     """Execute a single pipeline step with timing and error handling."""
-    logger.info("━" * 62)
+    logger.info("=" * 62)
     logger.info("  %s", label)
-    logger.info("━" * 62)
+    logger.info("=" * 62)
     
     t0 = time.perf_counter()
     try:
         result = fn()
         elapsed = time.perf_counter() - t0
-        logger.info("  ✓  Completed in %.2fs\n", elapsed)
+        logger.info("  [OK]  Completed in %.2fs\n", elapsed)
         return True, elapsed, result
     except Exception as exc:
         elapsed = time.perf_counter() - t0
         logger.error(
-            "  ✗  FAILED after %.2fs — %s: %s",
+            "  [FAIL] FAILED after %.2fs - %s: %s",
             elapsed, type(exc).__name__, exc,
             exc_info=True,
         )
@@ -130,9 +130,9 @@ def main() -> int:
 
     pipeline_start = time.perf_counter()
 
-    logger.info("╔══════════════════════════════════════════════════════════════╗")
-    logger.info("║         invoice-ocr-pipeline  ·  starting run               ║")
-    logger.info("╚══════════════════════════════════════════════════════════════╝\n")
+    logger.info("+--------------------------------------------------------------+")
+    logger.info("|         invoice-ocr-pipeline  -  starting run                |")
+    logger.info("+--------------------------------------------------------------+\n")
 
     step_results: dict[str, tuple[bool, float, object]] = {}
 
@@ -142,13 +142,13 @@ def main() -> int:
         step_results["1_generate"] = (True, 0.0, None)
     else:
         step_results["1_generate"] = _run_step(
-            "STEP 1 / 3  —  Generate invoices (PDF)",
-            gen_step.main,
+            "STEP 1 / 3  -  Generate invoices (PDF)",
+            lambda: gen_step.main(export_truth=True),
         )
 
     # Step 2: Extract OCR data
     step_results["2_extract"] = _run_step(
-        "STEP 2 / 3  —  Extract OCR data → CSV",
+        "STEP 2 / 3  -  Extract OCR data -> CSV",
         ext_step.main,
     )
 
@@ -160,37 +160,37 @@ def main() -> int:
         step_results["3_load"] = (False, 0.0, None)
     else:
         step_results["3_load"] = _run_step(
-            "STEP 3 / 3  —  Load CSV → SQLite database",
+            "STEP 3 / 3  -  Load CSV -> SQLite database",
             load_step.main,
         )
 
     # Summary
     total_elapsed = time.perf_counter() - pipeline_start
     any_failed = any(not ok for ok, _, _ in step_results.values())
-    overall = "SUCCESS ✓" if not any_failed else "FAILED ✗"
+    overall = "SUCCESS [OK]" if not any_failed else "FAILED [ERR]"
 
     step_labels = {
-        "1_generate": "Step 1 — Generate PDFs     ",
-        "2_extract":  "Step 2 — Extract OCR data  ",
-        "3_load":     "Step 3 — Load to database  ",
+        "1_generate": "Step 1 - Generate PDFs     ",
+        "2_extract":  "Step 2 - Extract OCR data  ",
+        "3_load":     "Step 3 - Load to database  ",
     }
 
     logger.info("")
-    logger.info("╔══════════════════════════════════════════════════════════════╗")
-    logger.info("║                      PIPELINE SUMMARY                       ║")
-    logger.info("╠══════════════════════════════════════════════════════════════╣")
+    logger.info("+--------------------------------------------------------------+")
+    logger.info("|                      PIPELINE SUMMARY                        |")
+    logger.info("+--------------------------------------------------------------+")
     
     for key, label in step_labels.items():
         ok, elapsed, _ = step_results[key]
-        icon = "✓" if ok else "✗"
+        icon = "[OK] " if ok else "[ERR]"
         status = "OK  " if ok else "FAIL"
-        logger.info("║  %s  %s  %s  %6.2fs                               ║",
+        logger.info("|  %s  %s  %s  %6.2fs                             |",
                     icon, label, status, elapsed)
 
-    logger.info("╠══════════════════════════════════════════════════════════════╣")
-    logger.info("║  Total runtime : %-44s ║", f"{total_elapsed:.2f}s")
-    logger.info("║  Overall       : %-44s ║", overall)
-    logger.info("╚══════════════════════════════════════════════════════════════╝")
+    logger.info("+--------------------------------------------------------------+")
+    logger.info("|  Total runtime : %-44s |", f"{total_elapsed:.2f}s")
+    logger.info("|  Overall       : %-44s |", overall)
+    logger.info("+--------------------------------------------------------------+")
 
     # Audit Log
     n_found = len(extracted_records) if extracted_records else 0

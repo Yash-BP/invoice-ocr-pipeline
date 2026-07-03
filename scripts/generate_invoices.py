@@ -210,7 +210,7 @@ def generate_invoice(invoice_number: int, output_dir: Path) -> dict:
 
 def main(export_truth: bool = False) -> None:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    logger.info("Starting invoice generation — target: %d invoices → %s",
+    logger.info("Starting invoice generation - target: %d invoices -> %s",
                 INVOICE_COUNT, OUTPUT_DIR)
 
     ground_truth_records = []
@@ -223,10 +223,10 @@ def main(export_truth: bool = False) -> None:
             logger.info("  [OK]   %s", record["source_file"])
             success += 1
         except Exception as exc:   # noqa: BLE001
-            logger.error("  [FAIL] INV-%05d — %s: %s", i, type(exc).__name__, exc)
+            logger.error("  [FAIL] INV-%05d - %s: %s", i, type(exc).__name__, exc)
             failure += 1
 
-    logger.info("Generation complete — %d succeeded, %d failed.", success, failure)
+    logger.info("Generation complete - %d succeeded, %d failed.", success, failure)
 
     if export_truth and ground_truth_records:
         GROUND_TRUTH_CSV.parent.mkdir(parents=True, exist_ok=True)
@@ -236,13 +236,13 @@ def main(export_truth: bool = False) -> None:
             writer = csv.DictWriter(f, fieldnames=fieldnames)
             writer.writeheader()
             writer.writerows(ground_truth_records)
-        logger.info("Ground truth manifest written → %s", GROUND_TRUTH_CSV)
+        logger.info("Ground truth manifest written -> %s", GROUND_TRUTH_CSV)
 
 
 if __name__ == "__main__":
     logging.basicConfig(
         level=logging.INFO,
-        format="%(asctime)s  %(levelname)-8s  %(name)s — %(message)s",
+        format="%(asctime)s  %(levelname)-8s  %(name)s - %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
     parser = argparse.ArgumentParser(description="Generate synthetic GST invoice PDFs")

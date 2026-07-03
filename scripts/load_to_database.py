@@ -105,20 +105,45 @@ def load_records(conn: sqlite3.Connection, df: pd.DataFrame) -> tuple[int, int]:
 
     for _, row in df.iterrows():
         try:
+            # Handle float/int conversions safely for numeric types
+            subtotal = float(row["subtotal"]) if pd.notna(row.get("subtotal")) else None
+            tax_amount = float(row["tax_amount"]) if pd.notna(row.get("tax_amount")) else None
+            cgst = float(row["cgst"]) if pd.notna(row.get("cgst")) else None
+            sgst = float(row["sgst"]) if pd.notna(row.get("sgst")) else None
+            igst = float(row["igst"]) if pd.notna(row.get("igst")) else None
+            grand_total = float(row["grand_total"]) if pd.notna(row.get("grand_total")) else None
+            val_passed = int(row["validation_passed"]) if pd.notna(row.get("validation_passed")) else 1
+
             cursor.execute(
                 """
                 INSERT INTO processed_invoices
-                    (invoice_id, invoice_date, vendor_name,
-                     subtotal, tax_amount, grand_total, source_file)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                    (invoice_id, invoice_id_confidence, invoice_date, invoice_date_confidence,
+                     vendor_name, vendor_name_confidence, subtotal, subtotal_confidence,
+                     tax_amount, tax_amount_confidence, cgst, sgst, igst, grand_total,
+                     grand_total_confidence, extraction_method, overall_confidence,
+                     validation_passed, validation_note, source_file)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     row.get("invoice_id"),
+                    row.get("invoice_id_confidence"),
                     row.get("invoice_date"),
+                    row.get("invoice_date_confidence"),
                     row.get("vendor_name"),
-                    row.get("subtotal"),
-                    row.get("tax_amount"),
-                    row.get("grand_total"),
+                    row.get("vendor_name_confidence"),
+                    subtotal,
+                    row.get("subtotal_confidence"),
+                    tax_amount,
+                    row.get("tax_amount_confidence"),
+                    cgst,
+                    sgst,
+                    igst,
+                    grand_total,
+                    row.get("grand_total_confidence"),
+                    row.get("extraction_method"),
+                    row.get("overall_confidence"),
+                    val_passed,
+                    row.get("validation_note"),
                     row.get("source_file"),
                 ),
             )
@@ -148,7 +173,7 @@ def load_records(conn: sqlite3.Connection, df: pd.DataFrame) -> tuple[int, int]:
 # ---------------------------------------------------------------------------
 
 def main() -> None:
-    logger.info("Starting database load — source: %s → %s",
+    logger.info("Starting database load - source: %s -> %s",
                 EXTRACTED_CSV, DB_PATH)
 
     # Ensure the data directory exists
@@ -177,7 +202,7 @@ def main() -> None:
 
     # ---- Summary ----
     logger.info(
-        "Load complete — %d inserted, %d skipped/failed.",
+        "Load complete - %d inserted, %d skipped/failed.",
         inserted, failed,
     )
 
@@ -190,7 +215,7 @@ def main() -> None:
             )
             count, total, avg = cur.fetchone()
             logger.info(
-                "DB summary — rows: %d | total expenditure: Rs. %s | avg: Rs. %s",
+                "DB summary - rows: %d | total expenditure: Rs. %s | avg: Rs. %s",
                 count or 0,
                 f"{total:,.2f}" if total else "0.00",
                 f"{avg:,.2f}"   if avg   else "0.00",
